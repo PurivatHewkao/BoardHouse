@@ -55,9 +55,9 @@ function App() {
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="app-shell">
       <Header page={page} setPage={setPage} />
-      <main className="flex-1">
+      <main>
         {page === "Home" && <HomeRoute addToCart={addToCart} />}
         {page === "Cart" && (
           <CartRoute

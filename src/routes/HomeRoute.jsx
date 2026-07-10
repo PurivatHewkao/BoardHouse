@@ -17,31 +17,29 @@ function HomeRoute({ addToCart }) {
 
   return (
     <>
-      <section className="border-b border-line">
-        <div className="mx-auto max-w-[1680px] px-4 py-16 xl:px-12 xl:py-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
-            <div>
-              <span className="mb-6 inline-flex rounded-full border border-line bg-surface px-4 py-2 text-sm font-extrabold text-ink shadow-board">
-                University Project
-              </span>
-              <h1 className="mb-6 font-serif text-6xl leading-[1.08] text-ink md:text-7xl xl:text-8xl">
-                Welcome to <span className="block text-brand">BoardHouse</span>
+      <section className="hero-section border-bottom">
+        <div className="container-xxl py-5">
+          <div className="row align-items-center g-5 py-lg-5">
+            <div className="col-lg-7">
+              <span className="badge rounded-pill text-bg-light border px-3 py-2 mb-4">University Project</span>
+              <h1 className="hero-title display-1 mb-4">
+                Welcome to <span className="d-block text-brand">BoardHouse</span>
               </h1>
-              <p className="max-w-3xl text-xl leading-8 text-muted md:text-2xl">
+              <p className="lead text-muted mb-4">
                 Discover strategy, family, party, and card games. Roll the dice on your next favorite board game.
               </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <button className="rounded-xl border border-brand bg-brand px-8 py-4 text-lg font-extrabold text-white shadow-board transition hover:bg-brand-dark" type="button">
+              <div className="d-flex flex-column flex-sm-row gap-3">
+                <button className="btn btn-boardhouse btn-lg px-4" type="button">
                   Shop Now
                 </button>
-                <button className="rounded-xl border border-line bg-surface px-8 py-4 text-lg font-extrabold text-ink shadow-board transition hover:bg-soft" type="button">
+                <button className="btn btn-light btn-lg border px-4" type="button">
                   Learn More
                 </button>
               </div>
             </div>
-            <div className="flex justify-center lg:justify-end">
-              <div className="grid aspect-square w-full max-w-[385px] place-items-center rounded-[2rem] bg-[#eadccf]" aria-hidden="true">
-                <div className="large-dice grid aspect-square w-[42%] place-items-center rounded-3xl border-[1rem] border-brand text-brand">
+            <div className="col-lg-5 d-flex justify-content-lg-center">
+              <div className="hero-art" aria-hidden="true">
+                <div className="large-dice">
                   <DiceMark />
                 </div>
               </div>
@@ -50,29 +48,27 @@ function HomeRoute({ addToCart }) {
         </div>
       </section>
 
-      <section className="py-12 xl:py-16">
-        <div className="mx-auto max-w-[1680px] px-4 xl:px-12">
-          <div className="mb-10 grid gap-4 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-            <div>
-              <label className="flex min-h-14 items-center overflow-hidden rounded-xl border border-line bg-surface shadow-board">
-                <span className="border-r border-line px-4 font-bold text-muted" aria-hidden="true">
+      <section className="py-5">
+        <div className="container-xxl">
+          <div className="row g-3 align-items-center mb-5">
+            <div className="col-lg-5">
+              <label className="input-group input-group-lg shadow-sm">
+                <span className="input-group-text bg-white border-end-0" aria-hidden="true">
                   Search
                 </span>
                 <input
-                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-lg text-ink outline-none placeholder:text-muted/70"
+                  className="form-control border-start-0"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search board games..."
                 />
               </label>
             </div>
-            <div>
-              <div className="flex flex-wrap gap-2 lg:justify-end" aria-label="Product categories">
+            <div className="col-lg-7">
+              <div className="d-flex flex-wrap justify-content-lg-end gap-2" aria-label="Product categories">
                 {categories.map((item) => (
                   <button
-                    className={`rounded-xl border border-line px-5 py-3 font-bold shadow-board transition ${
-                      category === item ? "bg-soft text-ink" : "bg-surface text-ink hover:bg-soft"
-                    }`}
+                    className={category === item ? "btn btn-category active" : "btn btn-category"}
                     key={item}
                     type="button"
                     onClick={() => setCategory(item)}
@@ -84,9 +80,9 @@ function HomeRoute({ addToCart }) {
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
             {visibleProducts.map((product) => (
-              <div key={product.id}>
+              <div className="col" key={product.id}>
                 <ProductCard product={product} addToCart={addToCart} />
               </div>
             ))}
@@ -99,30 +95,24 @@ function HomeRoute({ addToCart }) {
 
 function ProductCard({ product, addToCart }) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-board">
-      <div className="grid min-h-[250px] place-items-center bg-soft text-muted">Product Image</div>
-      <div className="flex flex-1 flex-col p-6">
-        <div className="mb-5 flex justify-between gap-3">
+    <article className="card product-card h-100 shadow-sm">
+      <div className="product-image card-img-top">Product Image</div>
+      <div className="card-body d-flex flex-column">
+        <div className="d-flex justify-content-between gap-3 mb-3">
           <div>
-            <h2 className="mb-1 font-serif text-3xl leading-tight">{product.name}</h2>
-            <p className="text-xl font-extrabold text-brand">{money(product.price)}</p>
+            <h2 className="h3 mb-1">{product.name}</h2>
+            <p className="price mb-0">{money(product.price)}</p>
           </div>
-          <div className="text-right text-sm text-muted">
-            <span className="mb-2 inline-flex rounded-full bg-[#f2e7d5] px-3 py-1 font-extrabold text-ink">
-              {product.category}
-            </span>
-            <div className="whitespace-nowrap">Stock: {product.stock}</div>
+          <div className="text-end text-muted small">
+            <span className="badge rounded-pill tag mb-2">{product.category}</span>
+            <div>Stock: {product.stock}</div>
           </div>
         </div>
-        <div className="mt-auto flex gap-2">
-          <button className="flex-1 rounded-xl border border-line bg-surface px-4 py-3 font-bold text-ink transition hover:bg-soft" type="button">
+        <div className="d-flex gap-2 mt-auto">
+          <button className="btn btn-light border flex-fill" type="button">
             View
           </button>
-          <button
-            className="flex-1 rounded-xl border border-brand bg-brand px-4 py-3 font-bold text-white transition hover:bg-brand-dark"
-            type="button"
-            onClick={() => addToCart(product.id)}
-          >
+          <button className="btn btn-boardhouse flex-fill" type="button" onClick={() => addToCart(product.id)}>
             Add to Cart
           </button>
         </div>
