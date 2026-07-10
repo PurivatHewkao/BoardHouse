@@ -1,7 +1,7 @@
 import React from "react";
 import { money } from "../utils/format.js";
 
-function CartRoute({ items, subtotal, changeQuantity, removeItem }) {
+function CartRoute({ items, subtotal, changeQuantity, removeItem, checkout }) {
   return (
     <section className="py-5">
       <div className="container-xxl">
@@ -38,6 +38,11 @@ function CartRoute({ items, subtotal, changeQuantity, removeItem }) {
                   </div>
                 </article>
               ))}
+              {items.length === 0 && (
+                <div className="card shadow-sm">
+                  <div className="card-body text-center text-muted">Your cart is empty.</div>
+                </div>
+              )}
             </div>
           </div>
           <div className="col-lg-4">
@@ -57,7 +62,12 @@ function CartRoute({ items, subtotal, changeQuantity, removeItem }) {
                   <span>Total</span>
                   <strong className="text-brand">{money(subtotal)}</strong>
                 </div>
-                <button className="btn btn-boardhouse btn-lg w-100" type="button">
+                <button
+                  className="btn btn-boardhouse btn-lg w-100"
+                  type="button"
+                  disabled={items.length === 0}
+                  onClick={checkout}
+                >
                   Checkout
                 </button>
               </div>

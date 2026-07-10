@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
 import DiceMark from "../components/DiceMark.jsx";
-import { categories, products } from "../data/products.js";
+import { categories } from "../data/products.js";
 import { money } from "../utils/format.js";
 
-function HomeRoute({ addToCart }) {
+function HomeRoute({ products, addToCart }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
@@ -86,6 +86,13 @@ function HomeRoute({ addToCart }) {
                 <ProductCard product={product} addToCart={addToCart} />
               </div>
             ))}
+            {visibleProducts.length === 0 && (
+              <div className="col-12">
+                <div className="card shadow-sm">
+                  <div className="card-body text-center text-muted">No products found.</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -112,8 +119,13 @@ function ProductCard({ product, addToCart }) {
           <button className="btn btn-light border flex-fill" type="button">
             View
           </button>
-          <button className="btn btn-boardhouse flex-fill" type="button" onClick={() => addToCart(product.id)}>
-            Add to Cart
+          <button
+            className="btn btn-boardhouse flex-fill"
+            type="button"
+            disabled={product.stock <= 0}
+            onClick={() => addToCart(product.id)}
+          >
+            {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
           </button>
         </div>
       </div>

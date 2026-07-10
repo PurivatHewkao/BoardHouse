@@ -1,12 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
+import { getOrders } from "../utils/orderStorage.js";
+import { getProducts } from "../utils/productStorage.js";
+import { getUsers } from "../utils/userStorage.js";
+import { money } from "../utils/format.js";
+import { resetStorage } from "../utils/localStorageDb.js";
 
 function AdminRoute() {
+  const [message, setMessage] = useState("");
+  const [dashboardData, setDashboardData] = useState(() => ({
+    products: getProducts(),
+    orders: getOrders(),
+    users: getUsers(),
+  }));
+  const { products, orders, users } = dashboardData;
+  const customers = users.filter((user) => user.role === "customer");
+  const revenue = orders.reduce((sum, order) => sum + order.total, 0);
   const stats = [
-    { label: "Total Products", value: "128", icon: "box" },
-    { label: "Total Orders", value: "342", icon: "bag" },
-    { label: "Total Customers", value: "89", icon: "users" },
-    { label: "Total Sales", value: "$12,480", icon: "cash" },
+    { label: "Total Products", value: products.length, icon: "box" },
+    { label: "Total Orders", value: orders.length, icon: "bag" },
+    { label: "Total Customers", value: customers.length, icon: "users" },
+    { label: "Total Sales", value: money(revenue), icon: "cash" },
   ];
+
+  function handleResetData() {
+    resetStorage();
+    setDashboardData({
+      products: getProducts(),
+      orders: getOrders(),
+      users: getUsers(),
+    });
+    setMessage("Mock data has been reset.");
+  }
 
   return (
     <section className="py-5">
@@ -30,8 +54,18 @@ function AdminRoute() {
             </div>
           </aside>
           <div className="col-lg-9">
-            <h1 className="page-title mb-2">Dashboard</h1>
-            <p className="lead text-muted mb-4">Overview of the BoardHouse store.</p>
+            <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+              <div>
+                <h1 className="page-title mb-2">Dashboard</h1>
+                <p className="lead text-muted mb-0">Overview of the BoardHouse store.</p>
+              </div>
+              <div className="d-grid gap-2 d-md-block">
+                <button className="btn btn-outline-danger" type="button" onClick={handleResetData}>
+                  Reset Mock Data
+                </button>
+              </div>
+            </div>
+            {message && <div className="alert alert-success border-0 shadow-sm">{message}</div>}
             <div className="row row-cols-1 row-cols-md-2 g-4">
               {stats.map((stat) => (
                 <div className="col" key={stat.label}>
