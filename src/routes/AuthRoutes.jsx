@@ -1,17 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
+import { loginUser, registerUser } from "../utils/userStorage.js";
 
-export function LoginRoute({ setPage }) {
+export function LoginRoute({ setPage, setCurrentUser }) {
+  const [email, setEmail] = useState("jane@example.com");
+  const [password, setPassword] = useState("password");
+  const [message, setMessage] = useState("");
+
+  function handleLogin() {
+    const user = loginUser(email, password);
+
+    if (!user) {
+      setMessage("Email or password is incorrect.");
+      return;
+    }
+
+    setCurrentUser(user);
+    setMessage(`Logged in as ${user.name}.`);
+    setPage(user.role === "admin" ? "Admin" : "Home");
+  }
+
   return (
     <AuthLayout title="Login" subtitle="Welcome back to BoardHouse.">
       <label className="form-label">
         Email or Username
-        <input className="form-control form-control-lg mt-2" defaultValue="you@example.com" />
+        <input
+          className="form-control form-control-lg mt-2"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
       </label>
       <label className="form-label">
         Password
-        <input className="form-control form-control-lg mt-2" defaultValue="password" type="password" />
+        <input
+          className="form-control form-control-lg mt-2"
+          value={password}
+          type="password"
+          onChange={(event) => setPassword(event.target.value)}
+        />
       </label>
-      <button className="btn btn-boardhouse btn-lg w-100" type="button">
+      {message && <p className="mb-0 text-center text-muted">{message}</p>}
+      <button className="btn btn-boardhouse btn-lg w-100" type="button" onClick={handleLogin}>
         Login
       </button>
       <p className="mb-0 text-center text-muted">
@@ -24,26 +52,71 @@ export function LoginRoute({ setPage }) {
   );
 }
 
-export function RegisterRoute({ setPage }) {
+export function RegisterRoute({ setPage, setCurrentUser }) {
+  const [name, setName] = useState("Jane Doe");
+  const [email, setEmail] = useState("new-user@example.com");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
+
+  function handleRegister() {
+    if (!name || !email || !password) {
+      setMessage("Please fill in name, email, and password.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match.");
+      return;
+    }
+
+    const result = registerUser({ name, email, password });
+    setMessage(result.message);
+
+    if (result.ok) {
+      setCurrentUser(result.user);
+      setPage("Home");
+    }
+  }
+
   return (
     <AuthLayout title="Create Account" subtitle="Join the BoardHouse community.">
       <label className="form-label">
         Name
-        <input className="form-control form-control-lg mt-2" defaultValue="Jane Doe" />
+        <input
+          className="form-control form-control-lg mt-2"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
       </label>
       <label className="form-label">
         Email / Username
-        <input className="form-control form-control-lg mt-2" defaultValue="you@example.com" />
+        <input
+          className="form-control form-control-lg mt-2"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
       </label>
       <label className="form-label">
         Password
-        <input className="form-control form-control-lg mt-2" type="password" />
+        <input
+          className="form-control form-control-lg mt-2"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
       </label>
       <label className="form-label">
         Confirm Password
-        <input className="form-control form-control-lg mt-2" type="password" />
+        <input
+          className="form-control form-control-lg mt-2"
+          type="password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+        />
       </label>
-      <button className="btn btn-boardhouse btn-lg w-100" type="button">
+      {message && <p className="mb-0 text-center text-muted">{message}</p>}
+      <button className="btn btn-boardhouse btn-lg w-100" type="button" onClick={handleRegister}>
         Register
       </button>
       <p className="mb-0 text-center text-muted">
