@@ -9,38 +9,38 @@ function AdminRoute() {
   ];
 
   return (
-    <section className="py-12 xl:py-16">
-      <div className="mx-auto max-w-[1680px] px-4 xl:px-12">
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-          <aside>
-            <h2 className="mb-4 text-sm font-extrabold uppercase tracking-wider text-muted">Admin</h2>
-            <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-board">
-              <button className="flex w-full items-center gap-3 bg-brand px-5 py-4 text-left font-bold text-white" type="button">
+    <section className="py-5">
+      <div className="container-xxl">
+        <div className="row g-4">
+          <aside className="col-lg-3">
+            <h2 className="h6 text-muted text-uppercase mb-3">Admin</h2>
+            <div className="list-group shadow-sm">
+              <button className="list-group-item list-group-item-action active" type="button">
                 <span className="tiny-grid" />
                 Dashboard
               </button>
-              <button className="flex w-full items-center gap-3 border-t border-line px-5 py-4 text-left font-bold text-muted transition hover:bg-soft hover:text-ink" type="button">
+              <button className="list-group-item list-group-item-action" type="button">
                 <span className="tiny-box" />
                 Products
               </button>
-              <button className="flex w-full items-center gap-3 border-t border-line px-5 py-4 text-left font-bold text-muted transition hover:bg-soft hover:text-ink" type="button">
+              <button className="list-group-item list-group-item-action" type="button">
                 <span className="tiny-list" />
                 Orders
               </button>
             </div>
           </aside>
-          <div>
-            <h1 className="mb-2 font-serif text-5xl font-bold">Dashboard</h1>
-            <p className="mb-8 text-xl text-muted">Overview of the BoardHouse store.</p>
-            <div className="grid gap-6 md:grid-cols-2">
+          <div className="col-lg-9">
+            <h1 className="page-title mb-2">Dashboard</h1>
+            <p className="lead text-muted mb-4">Overview of the BoardHouse store.</p>
+            <div className="row row-cols-1 row-cols-md-2 g-4">
               {stats.map((stat) => (
-                <div key={stat.label}>
-                  <article className="h-full rounded-2xl border border-line bg-white shadow-board">
-                    <div className="flex items-center gap-4 p-6">
-                      <span className={`grid h-16 w-16 flex-none place-items-center rounded-2xl bg-[#f5ede7] text-2xl font-extrabold text-brand stat-icon ${stat.icon}`} />
+                <div className="col" key={stat.label}>
+                  <article className="card stat-card h-100 shadow-sm">
+                    <div className="card-body d-flex align-items-center gap-3 p-4">
+                      <span className={`stat-icon ${stat.icon}`} />
                       <div>
-                        <p className="mb-1 text-lg text-muted">{stat.label}</p>
-                        <strong className="font-serif text-4xl">{stat.value}</strong>
+                        <p className="mb-1 text-muted">{stat.label}</p>
+                        <strong className="display-6">{stat.value}</strong>
                       </div>
                     </div>
                   </article>

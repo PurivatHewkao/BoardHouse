@@ -3,20 +3,20 @@ import React from "react";
 export function LoginRoute({ setPage }) {
   return (
     <AuthLayout title="Login" subtitle="Welcome back to BoardHouse.">
-      <label className="grid gap-2 text-lg font-bold">
+      <label className="form-label">
         Email or Username
-        <input className="min-h-14 rounded-xl border border-line bg-surface px-4 text-lg text-muted shadow-board outline-none focus:border-brand" defaultValue="you@example.com" />
+        <input className="form-control form-control-lg mt-2" defaultValue="you@example.com" />
       </label>
-      <label className="grid gap-2 text-lg font-bold">
+      <label className="form-label">
         Password
-        <input className="min-h-14 rounded-xl border border-line bg-surface px-4 text-lg text-muted shadow-board outline-none focus:border-brand" defaultValue="password" type="password" />
+        <input className="form-control form-control-lg mt-2" defaultValue="password" type="password" />
       </label>
-      <button className="w-full rounded-xl border border-brand bg-brand px-6 py-4 text-lg font-extrabold text-white shadow-board transition hover:bg-brand-dark" type="button">
+      <button className="btn btn-boardhouse btn-lg w-100" type="button">
         Login
       </button>
-      <p className="text-center text-muted">
+      <p className="mb-0 text-center text-muted">
         No account?{" "}
-        <button className="font-bold text-brand" type="button" onClick={() => setPage("Register")}>
+        <button className="btn btn-link p-0 align-baseline link-boardhouse" type="button" onClick={() => setPage("Register")}>
           Register
         </button>
       </p>
@@ -27,28 +27,28 @@ export function LoginRoute({ setPage }) {
 export function RegisterRoute({ setPage }) {
   return (
     <AuthLayout title="Create Account" subtitle="Join the BoardHouse community.">
-      <label className="grid gap-2 text-lg font-bold">
+      <label className="form-label">
         Name
-        <input className="min-h-14 rounded-xl border border-line bg-surface px-4 text-lg text-muted shadow-board outline-none focus:border-brand" defaultValue="Jane Doe" />
+        <input className="form-control form-control-lg mt-2" defaultValue="Jane Doe" />
       </label>
-      <label className="grid gap-2 text-lg font-bold">
+      <label className="form-label">
         Email / Username
-        <input className="min-h-14 rounded-xl border border-line bg-surface px-4 text-lg text-muted shadow-board outline-none focus:border-brand" defaultValue="you@example.com" />
+        <input className="form-control form-control-lg mt-2" defaultValue="you@example.com" />
       </label>
-      <label className="grid gap-2 text-lg font-bold">
+      <label className="form-label">
         Password
-        <input className="min-h-14 rounded-xl border border-line bg-surface px-4 text-lg text-muted shadow-board outline-none focus:border-brand" type="password" />
+        <input className="form-control form-control-lg mt-2" type="password" />
       </label>
-      <label className="grid gap-2 text-lg font-bold">
+      <label className="form-label">
         Confirm Password
-        <input className="min-h-14 rounded-xl border border-line bg-surface px-4 text-lg text-muted shadow-board outline-none focus:border-brand" type="password" />
+        <input className="form-control form-control-lg mt-2" type="password" />
       </label>
-      <button className="w-full rounded-xl border border-brand bg-brand px-6 py-4 text-lg font-extrabold text-white shadow-board transition hover:bg-brand-dark" type="button">
+      <button className="btn btn-boardhouse btn-lg w-100" type="button">
         Register
       </button>
-      <p className="text-center text-muted">
+      <p className="mb-0 text-center text-muted">
         Already have an account?{" "}
-        <button className="font-bold text-brand" type="button" onClick={() => setPage("Login")}>
+        <button className="btn btn-link p-0 align-baseline link-boardhouse" type="button" onClick={() => setPage("Login")}>
           Login
         </button>
       </p>
@@ -58,12 +58,12 @@ export function RegisterRoute({ setPage }) {
 
 function AuthLayout({ title, subtitle, children }) {
   return (
-    <section className="py-12 xl:py-16">
-      <div className="mx-auto max-w-[1680px] px-4 xl:px-12">
-        <div className="mx-auto max-w-[624px]">
-          <h1 className="mb-2 font-serif text-5xl font-bold">{title}</h1>
-          <p className="mb-8 text-xl text-muted">{subtitle}</p>
-          <form className="grid gap-5 rounded-2xl border border-line bg-white p-6 shadow-board md:p-8">{children}</form>
+    <section className="py-5">
+      <div className="container">
+        <div className="auth-wrap mx-auto">
+          <h1 className="page-title mb-2">{title}</h1>
+          <p className="lead text-muted mb-4">{subtitle}</p>
+          <form className="card shadow-sm p-4 vstack gap-3">{children}</form>
         </div>
       </div>
     </section>

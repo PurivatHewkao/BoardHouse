@@ -3,33 +3,33 @@ import { money } from "../utils/format.js";
 
 function CartRoute({ items, subtotal, changeQuantity, removeItem }) {
   return (
-    <section className="py-12 xl:py-16">
-      <div className="mx-auto max-w-[1680px] px-4 xl:px-12">
-        <h1 className="mb-8 font-serif text-5xl font-bold">Your Cart</h1>
-        <div className="grid gap-6 lg:grid-cols-[1fr_420px] lg:items-start">
-          <div>
-            <div className="grid gap-4">
+    <section className="py-5">
+      <div className="container-xxl">
+        <h1 className="page-title mb-4">Your Cart</h1>
+        <div className="row g-4 align-items-start">
+          <div className="col-lg-8">
+            <div className="vstack gap-3">
               {items.map((item) => (
-                <article className="rounded-2xl border border-line bg-white shadow-board" key={item.productId}>
-                  <div className="p-5 md:p-6">
-                    <div className="grid gap-4 md:grid-cols-[96px_1fr_auto] md:items-center">
-                      <div>
-                        <div className="h-24 w-24 rounded-xl bg-soft" />
+                <article className="card shadow-sm" key={item.productId}>
+                  <div className="card-body">
+                    <div className="row g-3 align-items-center">
+                      <div className="col-auto">
+                        <div className="cart-thumb" />
                       </div>
-                      <div>
-                        <h2 className="mb-1 font-serif text-2xl font-bold">{item.product.name}</h2>
-                        <p className="text-lg text-muted">{money(item.product.price)}</p>
+                      <div className="col">
+                        <h2 className="h4 mb-1">{item.product.name}</h2>
+                        <p className="mb-0 text-muted">{money(item.product.price)}</p>
                       </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-surface text-xl shadow-board transition hover:bg-soft" type="button" onClick={() => changeQuantity(item.productId, -1)}>
+                      <div className="col-12 col-md-auto">
+                        <div className="d-flex align-items-center gap-2">
+                          <button className="btn btn-light border quantity-button" type="button" onClick={() => changeQuantity(item.productId, -1)}>
                             -
                           </button>
-                          <span className="min-w-8 text-center text-xl font-bold">{item.quantity}</span>
-                          <button className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-surface text-xl shadow-board transition hover:bg-soft" type="button" onClick={() => changeQuantity(item.productId, 1)}>
+                          <span className="quantity-value">{item.quantity}</span>
+                          <button className="btn btn-light border quantity-button" type="button" onClick={() => changeQuantity(item.productId, 1)}>
                             +
                           </button>
-                          <button className="ml-2 rounded-xl border border-red-300 px-4 py-2 font-bold text-red-600 transition hover:bg-red-50" type="button" onClick={() => removeItem(item.productId)}>
+                          <button className="btn btn-outline-danger ms-2" type="button" onClick={() => removeItem(item.productId)}>
                             Delete
                           </button>
                         </div>
@@ -40,24 +40,24 @@ function CartRoute({ items, subtotal, changeQuantity, removeItem }) {
               ))}
             </div>
           </div>
-          <div>
-            <aside className="rounded-2xl border border-line bg-white shadow-board">
-              <div className="p-6">
-                <h2 className="mb-6 font-serif text-3xl font-bold">Order Summary</h2>
-                <div className="mb-4 flex justify-between">
+          <div className="col-lg-4">
+            <aside className="card shadow-sm">
+              <div className="card-body p-4">
+                <h2 className="h3 mb-4">Order Summary</h2>
+                <div className="d-flex justify-content-between mb-3">
                   <span className="text-muted">Subtotal</span>
                   <strong>{money(subtotal)}</strong>
                 </div>
-                <div className="mb-4 flex justify-between">
+                <div className="d-flex justify-content-between mb-3">
                   <span className="text-muted">Shipping</span>
                   <strong>Free</strong>
                 </div>
-                <hr className="my-5 border-line" />
-                <div className="mb-6 flex items-baseline justify-between text-2xl font-bold">
+                <hr />
+                <div className="d-flex justify-content-between align-items-baseline mb-4 fs-4">
                   <span>Total</span>
                   <strong className="text-brand">{money(subtotal)}</strong>
                 </div>
-                <button className="w-full rounded-xl border border-brand bg-brand px-6 py-4 text-lg font-extrabold text-white shadow-board transition hover:bg-brand-dark" type="button">
+                <button className="btn btn-boardhouse btn-lg w-100" type="button">
                   Checkout
                 </button>
               </div>
