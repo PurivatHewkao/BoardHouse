@@ -96,10 +96,14 @@
     line1: "99/1 BoardHouse Street",
     district: "Bangkok",
     province: "Bangkok",
-    postalCode: "10200"
+    postalCode: "10200",
+    recipientName: "Jane Doe",
+    phone: "081-234-5678"
   }
 }
 ```
+
+`recipientName` และ `phone` ใน `shippingAddress` มาจากฟอร์มหน้า Checkout (`CheckoutRoute.jsx`) เพื่อให้ผู้รับพัสดุไม่ต้องเป็นคนเดียวกับเจ้าของบัญชีเสมอไป
 
 ## Order Status
 
