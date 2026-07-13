@@ -1,20 +1,39 @@
 import React, { useState } from "react";
 import { getOrders } from "../utils/orderStorage.js";
-import { getProducts } from "../utils/productStorage.js";
+import { getProducts, addProduct, updateProduct, deleteProduct } from "../utils/productStorage.js";
 import { getUsers } from "../utils/userStorage.js";
 import { money } from "../utils/format.js";
 import { resetStorage } from "../utils/localStorageDb.js";
+// 💡 ดึงประเภทหมวดหมู่เดียวกับหน้าโฮมมาใช้ (ถ้าดึงจากไฟล์นี้ไม่ได้ ให้เปลี่ยนพาธให้ตรงกับโปรเจกต์หนูนะคะ)
+import { categories } from "../data/products.js";
 
 function AdminRoute() {
+  const [currentTab, setCurrentTab] = useState("dashboard");
   const [message, setMessage] = useState("");
+  
   const [dashboardData, setDashboardData] = useState(() => ({
     products: getProducts(),
     orders: getOrders(),
     users: getUsers(),
   }));
+
+  // State ฟิลด์ข้อมูลสินค้า
+  const [newName, setNewName] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const [newStock, setNewStock] = useState("");
+  const [newImage, setNewImage] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  // 💡 เพิ่ม State สำหรับเลือกประเภทสินค้า (เริ่มต้นเลือกประเภทแรกที่ไม่ใช่ "All")
+  const [newCategory, setNewCategory] = useState(() => {
+    const defaultCat = categories.find(cat => cat !== "All");
+    return defaultCat || "General";
+  });
+  const [editingId, setEditingId] = useState(null);
+
   const { products, orders, users } = dashboardData;
   const customers = users.filter((user) => user.role === "customer");
   const revenue = orders.reduce((sum, order) => sum + order.total, 0);
+  
   const stats = [
     { label: "Total Products", value: products.length, icon: "box" },
     { label: "Total Orders", value: orders.length, icon: "bag" },
@@ -22,65 +41,259 @@ function AdminRoute() {
     { label: "Total Sales", value: money(revenue), icon: "cash" },
   ];
 
-  function handleResetData() {
-    resetStorage();
+  function refreshData() {
     setDashboardData({
       products: getProducts(),
       orders: getOrders(),
       users: getUsers(),
     });
+  }
+
+  function handleResetData() {
+    resetStorage();
+    refreshData();
     setMessage("Mock data has been reset.");
+  }
+
+  function handleSaveProduct(e) {
+    e.preventDefault();
+    if (!newName || !newPrice || !newStock) {
+      alert("กรุณากรอกข้อมูลหลักให้ครบถ้วน (ชื่อ, ราคา, คลัง)");
+      return;
+    }
+
+    // 💡 แพ็กข้อมูลส่งเข้าระบบ โดยรอบนี้มีประเภทสินค้า (category) ติดไปด้วยแล้ว!
+    const itemData = {
+      name: newName,
+      price: Number(newPrice),
+      stock: Number(newStock),
+      image: newImage || "https://placehold.co/300x200?text=No+Image",
+      description: newDescription, 
+      category: newCategory, 
+    };
+
+    if (editingId) {
+      updateProduct(editingId, itemData);
+      setEditingId(null);
+    } else {
+      addProduct(itemData);
+    }
+    
+    refreshData();
+
+    // เคลียร์ฟอร์ม
+    setNewName("");
+    setNewPrice("");
+    setNewStock("");
+    setNewImage("");
+    setNewDescription("");
+    const defaultCat = categories.find(cat => cat !== "All");
+    setNewCategory(defaultCat || "General");
+    alert("บันทึกข้อมูลสินค้าและประเภทเรียบร้อยแล้วค่ะ!");
+  }
+
+  function handleEditClick(product) {
+    setEditingId(product.id);
+    setNewName(product.name);
+    setNewPrice(product.price);
+    setNewStock(product.stock);
+    setNewImage(product.image || "");
+    setNewDescription(product.description || "");
+    // ดึงประเภทเดิมของสินค้าชิ้นนั้นขึ้นมาแสดงใน Dropdown ค้างไว้
+    setNewCategory(product.category || categories.find(cat => cat !== "All") || "General");
+  }
+
+  function handleDeleteClick(id) {
+    if (confirm("หนูแน่ใจใช่ไหมคะว่าจะลบสินค้าชิ้นนี้?")) {
+      deleteProduct(id);
+      refreshData();
+    }
   }
 
   return (
     <section className="py-5">
       <div className="container-xxl">
         <div className="row g-4">
+          
           <aside className="col-lg-3">
             <h2 className="h6 text-muted text-uppercase mb-3">Admin</h2>
             <div className="list-group shadow-sm">
-              <button className="list-group-item list-group-item-action active" type="button">
-                <span className="tiny-grid" />
+              <button className={`list-group-item list-group-item-action ${currentTab === "dashboard" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("dashboard")}>
                 Dashboard
               </button>
-              <button className="list-group-item list-group-item-action" type="button">
-                <span className="tiny-box" />
+              <button className={`list-group-item list-group-item-action ${currentTab === "products" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("products")}>
                 Products
               </button>
-              <button className="list-group-item list-group-item-action" type="button">
-                <span className="tiny-list" />
+              <button className={`list-group-item list-group-item-action ${currentTab === "orders" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("orders")}>
                 Orders
               </button>
             </div>
           </aside>
+
           <div className="col-lg-9">
-            <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
-              <div>
-                <h1 className="page-title mb-2">Dashboard</h1>
-                <p className="lead text-muted mb-0">Overview of the BoardHouse store.</p>
-              </div>
-              <div className="d-grid gap-2 d-md-block">
-                <button className="btn btn-outline-danger" type="button" onClick={handleResetData}>
-                  Reset Mock Data
-                </button>
-              </div>
-            </div>
-            {message && <div className="alert alert-success border-0 shadow-sm">{message}</div>}
-            <div className="row row-cols-1 row-cols-md-2 g-4">
-              {stats.map((stat) => (
-                <div className="col" key={stat.label}>
-                  <article className="card stat-card h-100 shadow-sm">
-                    <div className="card-body d-flex align-items-center gap-3 p-4">
-                      <span className={`stat-icon ${stat.icon}`} />
-                      <div>
-                        <p className="mb-1 text-muted">{stat.label}</p>
-                        <strong className="display-6">{stat.value}</strong>
-                      </div>
-                    </div>
-                  </article>
+            
+            {/* ================= 1. หน้า DASHBOARD ================= */}
+            {currentTab === "dashboard" && (
+              <>
+                <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+                  <div>
+                    <h1 className="page-title mb-2">Dashboard</h1>
+                    <p className="lead text-muted mb-0">Overview of the BoardHouse store.</p>
+                  </div>
+                  <div className="d-grid gap-2 d-md-block">
+                    <button className="btn btn-outline-danger" type="button" onClick={handleResetData}>
+                      Reset Mock Data
+                    </button>
+                  </div>
                 </div>
-              ))}
-            </div>
+                {message && <div className="alert alert-success border-0 shadow-sm">{message}</div>}
+                <div className="row row-cols-1 row-cols-md-2 g-4">
+                  {stats.map((stat) => (
+                    <div className="col" key={stat.label}>
+                      <article className="card stat-card h-100 shadow-sm">
+                        <div className="card-body d-flex align-items-center gap-3 p-4">
+                          <span className={`stat-icon ${stat.icon}`} />
+                          <div>
+                            <p className="mb-1 text-muted">{stat.label}</p>
+                            <strong className="display-6">{stat.value}</strong>
+                          </div>
+                        </div>
+                      </article>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* ================= 2. หน้า PRODUCTS ================= */}
+            {currentTab === "products" && (
+              <>
+                <div className="mb-4">
+                  <h1 className="page-title mb-2">Products Management</h1>
+                  <p className="lead text-muted mb-0">จัดการข้อมูลสต็อก รูปภาพ รายละเอียด และประเภทสินค้า</p>
+                </div>
+
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-body p-4">
+                    <h5 className="card-title text-muted text-uppercase mb-3" style={{ fontSize: "0.85rem" }}>
+                      {editingId ? "✏️ Mode: แก้ไขข้อมูลสินค้า" : "＋ Mode: เพิ่มสินค้าใหม่"}
+                    </h5>
+                    <form onSubmit={handleSaveProduct} className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label small text-muted">ชื่อสินค้า</label>
+                        <input type="text" className="form-control" placeholder="เช่น Catan, Dixit" value={newName} onChange={(e) => setNewName(e.target.value)} />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label small text-muted">ลิงก์ URL รูปภาพสินค้า</label>
+                        <input type="text" className="form-control" placeholder="https://..." value={newImage} onChange={(e) => setNewImage(e.target.value)} />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted">ราคาขาย (บาท)</label>
+                        <input type="number" className="form-control" placeholder="ราคาสินค้า" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted">จำนวนในสต็อก (ชิ้น)</label>
+                        <input type="number" className="form-control" placeholder="จำนวนสินค้าในคลัง" value={newStock} onChange={(e) => setNewStock(e.target.value)} />
+                      </div>
+                      
+                      {/* 💡 เพิ่มกล่อง Dropdown สำหรับเลือกประเภทสินค้าตามที่กำหนดไว้ในหน้าโฮม */}
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted">ประเภทสินค้า</label>
+                        <select className="form-select" value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
+                          {categories
+                            .filter((cat) => cat !== "All") // กรองเอาคำว่า "All" ออกไป ไม่ให้แอดมินเผลอไปกดตั้งค่าสินค้าเป็นประเภท "ทั้งหมด"
+                            .map((cat) => (
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label small text-muted">รายละเอียด / คำอธิบายสินค้า</label>
+                        <textarea className="form-control" rows="3" placeholder="เขียนอธิบายสรรพคุณสินค้า..." value={newDescription} onChange={(e) => setNewDescription(e.target.value)}></textarea>
+                      </div>
+                      <div className="col-12 d-flex gap-2 justify-content-end pt-2">
+                        {editingId && (
+                          <button type="button" className="btn btn-light border" onClick={() => { setEditingId(null); setNewName(""); setNewPrice(""); setNewStock(""); setNewImage(""); setNewDescription(""); }}>
+                            ยกเลิกแก้ไข
+                          </button>
+                        )}
+                        <button type="submit" className="btn btn-primary px-4">
+                          {editingId ? "อัปเดตข้อมูล" : "บันทึกสินค้า"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-0">
+                    <div className="table-responsive">
+                      <table className="table table-hover align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th className="px-4 py-3">ID</th>
+                            <th className="py-3">สินค้า</th>
+                            <th className="py-3">ประเภท</th> {/* 💡 เพิ่มคอลัมน์โชว์ประเภทสินค้าในตารางแอดมิน */}
+                            <th className="py-3">ราคา</th>
+                            <th className="py-3">คงเหลือ</th>
+                            <th className="px-4 py-3 text-end">เครื่องมือ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {products.map((product) => (
+                            <tr key={product.id}>
+                              <td className="px-4 text-muted">#{product.id}</td>
+                              <td>
+                                <div className="d-flex align-items-center gap-3">
+                                  <img src={product.image || "https://placehold.co/300x200?text=No+Image"} alt={product.name} className="rounded" style={{ width: "45px", height: "45px", objectFit: "cover" }} />
+                                  <div>
+                                    <span className="fw-semibold text-dark d-block">{product.name}</span>
+                                    <small className="text-muted text-truncate d-block" style={{ maxWidth: "200px" }}>{product.description || "ไม่มีรายละเอียด"}</small>
+                                  </div>
+                                </div>
+                              </td>
+                              {/* 💡 โชว์ป้ายประเภทสินค้าเพื่อความง่ายในการตรวจสอบ */}
+                              <td>
+                                <span className="badge rounded-pill bg-light border text-dark">
+                                  {product.category || "General"}
+                                </span>
+                              </td>
+                              <td>{product.price.toLocaleString()} บาท</td>
+                              <td>
+                                <span className={`badge ${product.stock > 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"} px-2 py-1`}>
+                                  {product.stock} ชิ้น
+                                </span>
+                              </td>
+                              <td className="px-4 text-end">
+                                <button className="btn btn-sm btn-outline-secondary me-2" onClick={() => handleEditClick(product)}>แก้ไข</button>
+                                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClick(product.id)}>ลบ</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ================= 3. หน้า ORDERS ================= */}
+            {currentTab === "orders" && (
+              <>
+                <div className="mb-4">
+                  <h1 className="page-title mb-2">Orders Management</h1>
+                  <p className="lead text-muted mb-0">จัดการคำสั่งซื้อของลูกค้าในระบบ</p>
+                </div>
+                <div className="text-center py-5 text-muted bg-white rounded shadow-sm">
+                  กำลังพัฒนาส่วนการสร้างคำสั่งซื้อ (Create Order)...
+                </div>
+              </>
+            )}
+
           </div>
         </div>
       </div>
