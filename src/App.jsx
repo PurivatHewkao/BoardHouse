@@ -18,7 +18,7 @@ import {
 import { seedStorage } from "./utils/localStorageDb.js";
 import { createOrder } from "./utils/orderStorage.js";
 import { getProducts, reduceProductStock, saveProducts } from "./utils/productStorage.js";
-import { getCurrentUser, setCurrentUser } from "./utils/userStorage.js";
+import { getCurrentUser, logoutUser, setCurrentUser } from "./utils/userStorage.js";
 
 function App() {
   const [page, setPage] = useState("Home");
@@ -37,6 +37,13 @@ function App() {
   function handleCurrentUser(user) {
     updateCurrentUser(user);
     setCurrentUser(user);
+    setPage("Home");
+  }
+
+  function handleLogout() {
+    logoutUser();
+    updateCurrentUser(null);
+    setPage("Login");
   }
 
   const cartItems = cart
@@ -70,10 +77,7 @@ function App() {
   }
 
   function removeItem(productId) {
-    const item = cartItems.find((cartItem) => cartItem.productId === productId);
     setCart((items) => removeCartItem(items, productId));
-
-  
   }
 
   function goToCheckout() {
@@ -107,7 +111,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Header page={page} setPage={setPage} />
+      <Header page={page} setPage={setPage} currentUser={currentUser} onLogout={handleLogout} />
       <main>
         {page === "Home" && <HomeRoute products={products} addToCart={addToCart} />}
         {page === "Cart" && (
