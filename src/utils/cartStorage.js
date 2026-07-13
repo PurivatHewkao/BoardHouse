@@ -18,6 +18,7 @@ export function addCartItem(cart, productId, products) {
   const product = products.find((item) => item.id === productId);
 
   if (!product || product.stock <= 0) {
+    alert("Form submitted successfully!");
     return cart;
   }
 
