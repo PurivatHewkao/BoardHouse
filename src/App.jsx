@@ -3,6 +3,7 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import HomeRoute from "./routes/HomeRoute.jsx";
 import CartRoute from "./routes/CartRoute.jsx";
+import CheckoutRoute from "./routes/CheckoutRoute.jsx";
 import OrdersRoute from "./routes/OrdersRoute.jsx";
 import { LoginRoute, RegisterRoute } from "./routes/AuthRoutes.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx";
@@ -46,7 +47,22 @@ function App() {
     .filter((item) => item.product);
 
   function addToCart(productId) {
+    const product = products.find((item) => item.id === productId);
+
+    if (!product || product.stock <= 0) {
+      alert("This product is out of stock.");
+      return;
+    }
+
     setCart((items) => addCartItem(items, productId, products));
+
+    const nextProducts = products.map((item) =>
+      item.id === productId ? { ...item, stock: Math.max(0, item.stock - 1) } : item
+    );
+    saveProducts(nextProducts);
+    setProducts(nextProducts);
+
+    alert(`Added "${product.name}" to your cart.`);
   }
 
   function changeQuantity(productId, amount) {
@@ -54,15 +70,26 @@ function App() {
   }
 
   function removeItem(productId) {
+    const item = cartItems.find((cartItem) => cartItem.productId === productId);
     setCart((items) => removeCartItem(items, productId));
+
+  
   }
 
-  function checkout() {
+  function goToCheckout() {
     if (cartItems.length === 0) {
       return;
     }
 
-    createOrder({ user: currentUser, cartItems });
+    setPage("Checkout");
+  }
+
+  function placeOrder({ paymentMethod, shippingAddress }) {
+    if (cartItems.length === 0) {
+      return;
+    }
+
+    createOrder({ user: currentUser, cartItems, paymentMethod, shippingAddress });
     const nextProducts = reduceProductStock(products, cartItems);
     saveProducts(nextProducts);
     setProducts(nextProducts);
@@ -71,6 +98,12 @@ function App() {
   }
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+  useEffect(() => {
+    if (page === "Checkout" && cartItems.length === 0) {
+      setPage("Cart");
+    }
+  }, [page, cartItems.length]);
 
   return (
     <div className="app-shell">
@@ -83,7 +116,16 @@ function App() {
             subtotal={subtotal}
             changeQuantity={changeQuantity}
             removeItem={removeItem}
-            checkout={checkout}
+            checkout={goToCheckout}
+          />
+        )}
+        {page === "Checkout" && (
+          <CheckoutRoute
+            items={cartItems}
+            subtotal={subtotal}
+            currentUser={currentUser}
+            placeOrder={placeOrder}
+            setPage={setPage}
           />
         )}
         {page === "Orders" && <OrdersRoute currentUser={currentUser} />}
