@@ -359,6 +359,95 @@ main {
   content: "$";
 }
 
+/* --- Auth & role UI (Dew) --- */
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: var(--bh-soft);
+  border: 1px solid var(--bh-line);
+  color: var(--bh-text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.role-badge {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.role-badge.admin {
+  background: var(--bh-brand);
+  color: #fffaf5;
+}
+
+.role-badge.customer {
+  background: #e7d9c4;
+  color: #4a3a28;
+}
+
+/* แท็บ Admin ให้เด่นแยกจากเมนูทั่วไป เพื่อเห็นภาพการแยกสิทธิ์ */
+.nav-button.admin-tab {
+  border: 1px solid var(--bh-brand);
+  color: var(--bh-brand);
+  font-weight: 800;
+}
+
+.nav-button.admin-tab.active,
+.nav-button.admin-tab:hover {
+  background: var(--bh-brand);
+  color: #fffaf5;
+}
+
+/* กรอบ user-chip เปลี่ยนสีตาม role ให้แยก admin/customer ออกชัด */
+.user-chip.is-admin {
+  border-color: var(--bh-brand);
+  box-shadow: 0 0 0 1px var(--bh-brand) inset;
+}
+
+.user-chip-name {
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* พื้นที่ Admin dashboard (ตัวสาธิตการแยกสิทธิ์) */
+.admin-area {
+  max-width: 720px;
+}
+
+.admin-area-icon {
+  color: var(--bh-brand);
+}
+
+.admin-stat {
+  border: 1px solid var(--bh-line);
+  background: var(--bh-soft);
+}
+
+.input-group-text.field-icon {
+  background: var(--bh-soft);
+  border-color: var(--bh-line);
+  color: var(--bh-brand);
+}
+
+.auth-guard-icon {
+  color: var(--bh-brand);
+}
+
+.demo-hint {
+  background: var(--bh-soft);
+  border: 1px dashed var(--bh-line);
+  border-radius: 0.75rem;
+}
+
 @media (max-width: 760px) {
   .container-xxl {
     --bs-gutter-x: 1rem;
