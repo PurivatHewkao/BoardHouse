@@ -6,6 +6,9 @@ import { money } from "../utils/format.js";
 function HomeRoute({ products, addToCart }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  
+  // 🔥 State สำหรับเก็บข้อมูลสินค้าที่ลูกค้ากำลังกดดู (สไตล์ Shopee Modal)
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const visibleProducts = useMemo(() => {
     return products.filter((product) => {
@@ -83,7 +86,8 @@ function HomeRoute({ products, addToCart }) {
           <div className="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
             {visibleProducts.map((product) => (
               <div className="col" key={product.id}>
-                <ProductCard product={product} addToCart={addToCart} />
+                {/* ส่งฟังก์ชันเปิดหน้าต่างรายละเอียดสินค้าไปให้การ์ดสินค้า */}
+                <ProductCard product={product} addToCart={addToCart} onViewProduct={setSelectedProduct} />
               </div>
             ))}
             {visibleProducts.length === 0 && (
@@ -96,27 +100,92 @@ function HomeRoute({ products, addToCart }) {
           </div>
         </div>
       </section>
+
+      {/* 🔥 หน้าต่างป๊อปอัปรายละเอียดสินค้าสไตล์ Shopee (Bootstrap Modal) */}
+      {selectedProduct && (
+        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }} tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow">
+              <div className="modal-header border-bottom-0 pb-0">
+                <button type="button" className="btn-close" onClick={() => setSelectedProduct(null)} aria-label="Close"></button>
+              </div>
+              <div className="modal-body p-4">
+                <div className="row g-4">
+                  {/* ฝั่งซ้าย: รูปภาพใหญ่ชัดเจน */}
+                  <div className="col-md-6">
+                    <img 
+                      src={selectedProduct.image || "https://placehold.co/400x300?text=No+Image"} 
+                      alt={selectedProduct.name} 
+                      className="img-fluid rounded w-100 shadow-sm"
+                      style={{ height: "350px", objectFit: "cover" }}
+                    />
+                  </div>
+                  {/* ฝั่งขวา: รายละเอียดสินค้า ราคา และปุ่มสั่งซื้อแบบ Shopee */}
+                  <div className="col-md-6 d-flex flex-column justify-content-between">
+                    <div>
+                      <span className="badge bg-brand mb-2">{selectedProduct.category || "Board Game"}</span>
+                      <h2 className="h3 fw-bold mb-3">{selectedProduct.name}</h2>
+                      <div className="p-3 bg-light rounded mb-3">
+                        <span className="display-6 fw-bold text-brand">{money(selectedProduct.price)}</span>
+                      </div>
+                      <h5 className="h6 fw-bold text-dark mb-2">รายละเอียดสินค้า</h5>
+                      <p className="text-muted small" style={{ whiteSpace: "pre-line" }}>
+                        {selectedProduct.description || "ไม่มีคำอธิบายเพิ่มเติมสำหรับสินค้าชิ้นนี้"}
+                      </p>
+                    </div>
+                    
+                    <div className="pt-3 border-top">
+                      <div className="d-flex justify-content-between text-muted small mb-3">
+                        <span>สถานะสินค้า: {selectedProduct.stock > 0 ? "มีสินค้าในคลัง" : "สินค้าหมด"}</span>
+                        <span>คงเหลือ: {selectedProduct.stock} ชิ้น</span>
+                      </div>
+                      <button 
+                        className="btn btn-boardhouse btn-lg w-100" 
+                        disabled={selectedProduct.stock <= 0}
+                        onClick={() => {
+                          addToCart(selectedProduct.id);
+                          setSelectedProduct(null); // เพิ่มลงตะกร้าแล้วปิดหน้าต่างอัตโนมัติ
+                        }}
+                      >
+                        {selectedProduct.stock > 0 ? "🛒 ใส่ตะกร้าสินค้า" : "❌ สินค้าหมดชั่วคราว"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
-function ProductCard({ product, addToCart }) {
+function ProductCard({ product, addToCart, onViewProduct }) {
   return (
-    <article className="card product-card h-100 shadow-sm">
-      <div className="product-image card-img-top">Product Image</div>
+    <article className="card product-card h-100 shadow-sm overflow-hidden">
+      <div className="product-image" style={{ height: "220px", width: "100%", background: "#f8f9fa" }}>
+        <img 
+          src={product.image || "https://placehold.co/300x200?text=No+Image"} 
+          alt={product.name} 
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
+      
       <div className="card-body d-flex flex-column">
         <div className="d-flex justify-content-between gap-3 mb-3">
           <div>
-            <h2 className="h3 mb-1">{product.name}</h2>
+            <h2 className="h3 mb-1" style={{ fontSize: "1.2rem" }}>{product.name}</h2>
             <p className="price mb-0">{money(product.price)}</p>
           </div>
           <div className="text-end text-muted small">
-            <span className="badge rounded-pill tag mb-2">{product.category}</span>
+            <span className="badge rounded-pill tag mb-2 bg-light border text-dark">{product.category || "General"}</span>
             <div>Stock: {product.stock}</div>
           </div>
         </div>
         <div className="d-flex gap-2 mt-auto">
-          <button className="btn btn-light border flex-fill" type="button">
+          {/* เวลากด View จะส่งข้อมูลสินค้าขึ้นไปเปิดตัวป๊อปอัป Shopee Modal */}
+          <button className="btn btn-light border flex-fill" type="button" onClick={() => onViewProduct(product)}>
             View
           </button>
           <button
