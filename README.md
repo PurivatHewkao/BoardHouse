@@ -187,7 +187,201 @@ flowchart LR
     ManageProduct -.->|«include»| Browse
 
 ```
-[diagram ต่าง ๆ]
+
+### Class Diagram
+```mermaid
+classDiagram
+    direction LR
+
+    class Customer {
+        - string userId
+        - string username
+        - string password
+        - string email
+        - string phone
+        - string location
+        - string name
+        + register() bool
+        + login() bool
+        + logout() void
+        + addInfo() bool
+        + updateInfo() bool
+    }
+
+    class Cart {
+        - int cartId
+        + addItem() void
+        + removeItem() void
+        + calculateTotal() float
+        + checkout() Order
+    }
+
+    class CartProduct {
+        - int quantity
+        - float price
+        + allTotal() int
+        + viewItem() list
+    }
+
+    class Product {
+        - int productId
+        - string nameProduct
+        - float price
+        - string description
+        - string category
+    }
+
+    class Order {
+        - int orderId
+        - datetime orderDate
+        - string status
+        - float totalAmount
+        + createOrder() bool
+        + checkStatus() string
+        + confirm() void
+    }
+
+    class Payment {
+        - int paymentId
+        - float numAmount
+        - datetime payDate
+        - string paymentStatus
+        + processPay() bool
+    }
+
+    class OrderDetail {
+        - int orderDetailId
+        - string nameProduct
+        - int quantity
+        - float unitPrice
+        + calculateSubtotal() float
+    }
+
+    class Admin {
+        - int adminId
+        - string adminName
+        - string password
+        + login() bool
+        + logout() void
+        + viewAddress() list
+        + manageProducts() void
+        + manageOrders() void
+    }
+
+    class Stock {
+        - string nameProduct
+        - int quantity
+        + updateStock() void
+        + checkProductAmount() int
+    }
+
+    %% Customer shopping flow
+    Customer "1" --> "1" Cart : มีตะกร้า
+    Cart "1" --> "*" CartProduct : มีรายการ
+    CartProduct "*" --> "1" Product : ถูกเลือกใส่ตะกร้า
+
+    %% Order and payment flow
+    Customer "1" --> "*" Order : สั่งซื้อ
+    Order "1" --> "*" OrderDetail : รายละเอียด
+    Order "1" --> "1" Payment : ชำระเงิน
+    Product "1" --> "*" OrderDetail : ถูกสั่งซื้อ
+
+    %% Admin and stock management
+    Product "1" --> "1" Stock : มีสต็อก
+    Customer "*" <-- "*" Admin : ตรวจสอบ
+    Order "*" <-- "1" Admin : จัดการคำสั่งซื้อ
+    Product "*" <-- "1" Admin : จัดการสินค้า
+```
+
+### Sequence Diagram
+
+#### Customer Checkout Sequence
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer
+    participant Product
+    participant Cart
+    participant CartProduct
+    participant Order
+    participant OrderDetail
+    participant Stock
+    participant Payment
+
+    rect rgb(255, 248, 184)
+        Note over Customer,CartProduct: Browse & Add to Cart
+        Customer->>Product: เลือกสินค้า
+        Product-->>Customer: แสดงรายละเอียดสินค้า
+        Customer->>Cart: เพิ่มสินค้า
+        Cart->>CartProduct: สร้างรายการ
+        CartProduct-->>Cart: เพิ่มรายการสำเร็จ
+        Cart->>Cart: คำนวณยอดรวม
+        Cart-->>Customer: แสดงข้อมูลรวมในตะกร้า
+    end
+
+    rect rgb(255, 248, 184)
+        Note over Customer,OrderDetail: Checkout
+        Customer->>Cart: ชำระเงิน
+        Cart->>Order: สร้างคำสั่งซื้อ
+        Order->>CartProduct: ดึงรายการสินค้าในตะกร้า
+        CartProduct-->>Order: รายการสินค้า + จำนวน
+
+        loop สำหรับแต่ละสินค้าในตะกร้า
+            Order->>Stock: เช็คสต็อกสินค้า
+            Stock-->>Order: จำนวนคงเหลือ
+        end
+
+        alt สินค้าพร้อมส่งครบ
+            Order->>OrderDetail: บันทึกรายละเอียดออเดอร์
+            Order-->>Customer: สร้างออเดอร์สำเร็จ ไปหน้าชำระเงิน
+        else สินค้าไม่พอ
+            Order-->>Customer: แจ้งเตือนสินค้าไม่เพียงพอ
+        end
+    end
+
+    rect rgb(255, 248, 184)
+        Note over Customer,Payment: Make Payment / Process Payment
+        Customer->>Payment: ชำระเงิน
+        Payment->>Order: เช็คสถานะ
+        Order-->>Payment: สถานะออเดอร์ (รอชำระเงิน)
+        Payment->>Payment: บันทึกข้อมูลและวันที่ชำระเงิน
+        Payment-->>Order: อัปเดตสถานะเป็น "ชำระเงินแล้ว"
+        Order->>Stock: อัปเดตสต็อก
+        Stock-->>Order: อัปเดตสต็อกสำเร็จ
+        Order-->>Customer: ยืนยันการชำระเงิน
+    end
+```
+
+#### Admin Order Management Sequence
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin
+    participant Order
+    participant OrderDetail
+    participant Customer
+    participant Stock
+
+    Admin->>Admin: เลือกเมนูจัดการคำสั่งซื้อ
+    Admin->>Order: ดึงรายการคำสั่งซื้อทั้งหมด
+    Order-->>Admin: รายการคำสั่งซื้อ + สถานะ
+    Admin->>Order: เลือกสถานะคำสั่งซื้อ
+    Order-->>Admin: สถานะปัจจุบัน
+
+    alt อัปเดตสถานะคำสั่งซื้อ เช่น "จัดส่งแล้ว"
+        Admin->>Order: อัปเดตสถานะ
+        Order->>OrderDetail: ดึงรายละเอียดสินค้าในคำสั่งซื้อ
+        OrderDetail-->>Order: รายการสินค้า
+        Order->>Customer: แจ้งอัปเดตสถานะคำสั่งซื้อ
+    else ยกเลิกคำสั่งซื้อ
+        Admin->>Order: ยกเลิกคำสั่งซื้อ
+        Order->>Stock: อัปเดตสต็อกสินค้า
+        Stock-->>Order: อัปเดตสำเร็จ
+        Order->>Customer: แจ้งยกเลิกคำสั่งซื้อ
+    end
+
+    Order-->>Admin: บันทึกการเปลี่ยนแปลงสำเร็จ
+```
 
 ---
 
@@ -243,9 +437,19 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 
 
 
-### การออกแบบ UX, UI
 
-Figma, Photoshop สำหรับทำ Wireframe
+## การออกแบบ UX และ UI
+
+
+### ทีมใช้ Photoshop สำหรับทำ Wireframe
+
+#### Customer Wireframe
+
+![Customer Wireframe](docs/images/uxui-customer-wireframe.png)
+
+#### Admin Wireframe
+
+![Admin Wireframe](docs/images/uxui-admin-wireframe.png)
 
 ### เหตุผลที่เลือก
 
