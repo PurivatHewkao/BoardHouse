@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { getOrders } from "../utils/orderStorage.js";
+import { getOrders, updateOrderStatus } from "../utils/orderStorage.js";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../utils/productStorage.js";
 import { getUsers } from "../utils/userStorage.js";
 import { money } from "../utils/format.js";
 import { resetStorage } from "../utils/localStorageDb.js";
 // 💡 ดึงประเภทหมวดหมู่เดียวกับหน้าโฮมมาใช้ (ถ้าดึงจากไฟล์นี้ไม่ได้ ให้เปลี่ยนพาธให้ตรงกับโปรเจกต์หนูนะคะ)
 import { categories } from "../data/products.js";
+import { orderStatuses } from "../data/seedData.js";
+import OrderDetailModal from "../components/OrderDetailModal.jsx";
 
 function AdminRoute() {
   const [currentTab, setCurrentTab] = useState("dashboard");
@@ -29,6 +31,10 @@ function AdminRoute() {
     return defaultCat || "General";
   });
   const [editingId, setEditingId] = useState(null);
+
+  // State สำหรับหน้า Orders (ดูรายละเอียด + เปลี่ยนสถานะ order)
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderSearch, setOrderSearch] = useState("");
 
   const { products, orders, users } = dashboardData;
   const customers = users.filter((user) => user.role === "customer");
@@ -109,6 +115,31 @@ function AdminRoute() {
       refreshData();
     }
   }
+
+  function getCustomerName(userId) {
+    const user = users.find((item) => item.id === userId);
+    return user ? user.name : "Guest";
+  }
+
+  function handleOrderStatusChange(orderId, status) {
+    updateOrderStatus(orderId, status);
+    refreshData();
+    setSelectedOrder((current) =>
+      current && current.id === orderId ? { ...current, status, tone: status === "Completed" ? "primary" : "soft" } : current
+    );
+  }
+
+  const filteredOrders = orders.filter((order) => {
+    const query = orderSearch.trim().toLowerCase();
+    if (!query) {
+      return true;
+    }
+    return (
+      order.id.toLowerCase().includes(query) ||
+      getCustomerName(order.userId).toLowerCase().includes(query) ||
+      order.status.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <section className="py-5">
@@ -284,12 +315,83 @@ function AdminRoute() {
             {/* ================= 3. หน้า ORDERS ================= */}
             {currentTab === "orders" && (
               <>
-                <div className="mb-4">
-                  <h1 className="page-title mb-2">Orders Management</h1>
-                  <p className="lead text-muted mb-0">จัดการคำสั่งซื้อของลูกค้าในระบบ</p>
+                <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                  <div>
+                    <h1 className="page-title mb-2">Orders Management</h1>
+                    <p className="lead text-muted mb-0">จัดการคำสั่งซื้อของลูกค้าในระบบ</p>
+                  </div>
+                  <div style={{ minWidth: "260px" }}>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="ค้นหาด้วยเลขออเดอร์, ชื่อลูกค้า, สถานะ..."
+                      value={orderSearch}
+                      onChange={(e) => setOrderSearch(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="text-center py-5 text-muted bg-white rounded shadow-sm">
-                  กำลังพัฒนาส่วนการสร้างคำสั่งซื้อ (Create Order)...
+
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-0">
+                    <div className="table-responsive">
+                      <table className="table table-hover align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th className="px-4 py-3">เลขออเดอร์</th>
+                            <th className="py-3">ลูกค้า</th>
+                            <th className="py-3">วันที่</th>
+                            <th className="py-3">รายการ</th>
+                            <th className="py-3">ยอดรวม</th>
+                            <th className="py-3">สถานะ</th>
+                            <th className="px-4 py-3 text-end">เครื่องมือ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredOrders.map((order) => (
+                            <tr key={order.id}>
+                              <td className="px-4 fw-semibold text-dark">{order.id}</td>
+                              <td>{getCustomerName(order.userId)}</td>
+                              <td className="text-muted">{order.date}</td>
+                              <td className="text-muted text-truncate d-block" style={{ maxWidth: "220px" }}>
+                                {order.items}
+                              </td>
+                              <td className="text-brand fw-semibold">{money(order.total)}</td>
+                              <td>
+                                <select
+                                  className="form-select form-select-sm"
+                                  style={{ minWidth: "160px" }}
+                                  value={order.status}
+                                  onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                                >
+                                  {orderStatuses.map((status) => (
+                                    <option key={status} value={status}>
+                                      {status}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td className="px-4 text-end">
+                                <button
+                                  className="btn btn-sm btn-outline-secondary"
+                                  type="button"
+                                  onClick={() => setSelectedOrder(order)}
+                                >
+                                  ดูรายละเอียด
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {filteredOrders.length === 0 && (
+                            <tr>
+                              <td colSpan={7} className="text-center text-muted py-5">
+                                ไม่พบคำสั่งซื้อที่ตรงกับการค้นหา
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </>
             )}
@@ -297,6 +399,14 @@ function AdminRoute() {
           </div>
         </div>
       </div>
+
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          customerName={getCustomerName(selectedOrder.userId)}
+          onClose={() => setSelectedOrder(null)}
+        />
+      )}
     </section>
   );
 }

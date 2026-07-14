@@ -467,3 +467,26 @@ main {
     height: 76px;
   }
 }
+
+.order-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 21, 16, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 1050;
+}
+
+.order-modal-dialog {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: none;
+}
+
+.status.soft {
+  background: #f2e7d5;
+  color: #1e1510;
+}
