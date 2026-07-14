@@ -1,9 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { money } from "../utils/format.js";
 import { getOrders } from "../utils/orderStorage.js";
+import OrderDetailModal from "../components/OrderDetailModal.jsx";
 
 function OrdersRoute({ currentUser }) {
   const [orders] = useState(getOrders);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   const visibleOrders = useMemo(() => {
     if (!currentUser || currentUser.role === "admin") {
       return orders;
@@ -30,6 +33,13 @@ function OrdersRoute({ currentUser }) {
                 <div className="d-flex align-items-center gap-3">
                   <strong className="fs-5 text-brand">{money(order.total)}</strong>
                   <span className={`badge rounded-pill status ${order.tone}`}>{order.status}</span>
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setSelectedOrder(order)}
+                  >
+                    ดูรายละเอียด
+                  </button>
                 </div>
               </div>
             </article>
@@ -41,6 +51,10 @@ function OrdersRoute({ currentUser }) {
           )}
         </div>
       </div>
+
+      {selectedOrder && (
+        <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+      )}
     </section>
   );
 }
