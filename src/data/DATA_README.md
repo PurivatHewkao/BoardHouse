@@ -27,7 +27,8 @@
 | `src/utils/productStorage.js` | อ่านสินค้า, เพิ่ม, แก้ไข, ลบ, ลด stock |
 | `src/utils/cartStorage.js` | อ่านตะกร้า, เพิ่มสินค้า, เปลี่ยนจำนวน, ลบสินค้า, ล้างตะกร้า |
 | `src/utils/orderStorage.js` | อ่าน order, สร้าง order, เปลี่ยนสถานะ order |
-| `src/utils/userStorage.js` | อ่าน user, register, login, current user, logout |
+| `src/utils/userStorage.js` | อ่าน user, register, login, current user, logout, จัดการ admin |
+| `src/utils/roles.js` | กติกากลางเรื่อง role/สิทธิ์ และเมนูตาม role |
 
 ## Product Shape
 
@@ -61,7 +62,7 @@
 ```js
 {
   id: 1,
-  role: "customer", // "customer" หรือ "admin"
+  role: "customer", // "customer" | "admin" | "superadmin"
   name: "Jane Doe",
   email: "jane@example.com",
   password: "password",
@@ -75,6 +76,33 @@
   }
 }
 ```
+
+## Role
+
+มี 3 ระดับ ตัดสินสิทธิ์ผ่าน `src/utils/roles.js` เท่านั้น **ห้ามเทียบ `user.role === "admin"` ตรง ๆ ใน route** เพราะ `superadmin` จะหลุดเงื่อนไข
+
+| Role | เข้าหน้า Admin | จัดการ admin |
+| --- | --- | --- |
+| `customer` | ไม่ได้ | ไม่ได้ |
+| `admin` | ได้ | ไม่ได้ |
+| `superadmin` | ได้ (ทุกอย่างเหมือน admin) | ได้ |
+
+```js
+import { isAdmin, isSuperAdmin, isCustomer, canAccessAdmin, canManageAdmins } from "../utils/roles.js";
+
+isAdmin(user);         // true ทั้ง admin และ superadmin
+isSuperAdmin(user);    // เฉพาะ superadmin
+canAccessAdmin(user);  // ใช้ guard หน้า Admin
+canManageAdmins(user); // ใช้ guard การเพิ่ม/ลบ/เลื่อนขั้น admin
+```
+
+บัญชีตั้งต้นใน `seedData.js`:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| customer | `jane@example.com` | `password` |
+| admin | `admin@boardhouse.test` | `admin123` |
+| superadmin | `superadmin@boardhouse.test` | `superadmin123` |
 
 ## Order Shape
 
@@ -150,6 +178,23 @@ const result = registerUser({ name, email, password });
 const currentUser = getCurrentUser();
 logoutUser();
 ```
+
+### จัดการ Admin (Super Admin เท่านั้น)
+
+ทุกฟังก์ชันรับ `actor` = user ที่กดสั่ง เพื่อเช็คสิทธิ์ในตัว helper เอง ไม่เชื่อ UI
+คืนค่าเป็น `{ ok, message, users }` เหมือน `registerUser()`
+
+```js
+import { getAdmins, createAdmin, promoteToAdmin, demoteToCustomer, deleteAdmin } from "../utils/userStorage.js";
+
+getAdmins();
+createAdmin({ actor: currentUser, name, email, password, phone });
+promoteToAdmin(currentUser, userId);
+demoteToCustomer(currentUser, userId);
+deleteAdmin(currentUser, userId);
+```
+
+กติกา: บัญชี `superadmin` แก้/ลบไม่ได้ และ actor แตะบัญชีตัวเองไม่ได้
 
 ### Orders/Admin
 
