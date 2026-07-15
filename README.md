@@ -168,6 +168,8 @@ flowchart LR
     Customer --> LoginCustomer
     Customer --> Search
     Customer --> Detail
+    Customer --> Addon
+    Customer --> Cancel
 
     LoginCustomer --> Ordering
     LoginCustomer --> History
