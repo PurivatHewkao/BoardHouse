@@ -138,6 +138,7 @@ Miro : https://miro.com/app/board/uXjVH-d1Rmk=/?share_link_id=553190737674
 ```mermaid
 flowchart LR
     Customer["👤<br/>Customer"]
+
     Admin["👤<br/>Admin"]
     SuperAdmin["👤<br/>SuperAdmin"]
 
@@ -166,12 +167,12 @@ flowchart LR
         ManageAdmin([Manage Admin])
     end
 
-    Customer -- Browse
-    Customer -- LoginCustomer
-    Customer -- Search
-    Customer -- Detail
-    Customer -- Addon
-    Customer -- Cancel
+    Customer --- Browse
+    Customer --- LoginCustomer
+    Customer ---Search
+    Customer --- Detail
+    Customer --- Addon
+    Customer --- Cancel
 
     LoginCustomer --> Ordering
     LoginCustomer --> History
@@ -185,17 +186,17 @@ flowchart LR
     History -.->|«include»| Track
     Cancel -.->|«extend»| History
 
-    Admin -- AdminLogin
-    AdminLogin -- Dashboard
-    AdminLogin -- ManageProduct
-    AdminLogin -- ManageOrder
-    AdminLogin -- ManageCustomer
+    AdminLogin --- Admin
+    Dashboard --- AdminLogin
+    ManageProduct --- AdminLogin
+    ManageOrder --- AdminLogin
+    ManageCustomer --- AdminLogin
 
-    ManageOrder -.->|«include»| Track
-    ManageProduct -.->|«include»| Browse
+    Track-.->|«include»| ManageOrder
+    Browse -.->|«include»| ManageProduct
 
-    SuperAdmin -- AdminLogin
-    SuperAdmin -- ManageAdmin
+    AdminLogin --- SuperAdmin
+    ManageAdmin --- SuperAdmin
 
 ```
 
