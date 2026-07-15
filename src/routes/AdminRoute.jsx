@@ -181,6 +181,11 @@ function AdminRoute() {
   }
 
   function handleOrderStatusChange(orderId, status) {
+    const target = orders.find((order) => order.id === orderId);
+    if (target && target.status === "Completed") {
+      // ออเดอร์ที่ Completed แล้วห้ามแก้ไขสถานะอีก
+      return;
+    }
     updateOrderStatus(orderId, status);
     refreshData();
     setSelectedOrder((current) =>
@@ -594,18 +599,25 @@ function AdminRoute() {
                               </td>
                               <td className="text-brand fw-semibold">{money(order.total)}</td>
                               <td>
-                                <select
-                                  className="form-select form-select-sm"
-                                  style={{ minWidth: "160px" }}
-                                  value={order.status}
-                                  onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
-                                >
-                                  {orderStatuses.map((status) => (
-                                    <option key={status} value={status}>
-                                      {status}
-                                    </option>
-                                  ))}
-                                </select>
+                                {order.status === "Completed" ? (
+                                  <span className="badge rounded-pill status primary">
+                                    <i className="bi bi-lock-fill me-1" />
+                                    {order.status}
+                                  </span>
+                                ) : (
+                                  <select
+                                    className="form-select form-select-sm"
+                                    style={{ minWidth: "160px" }}
+                                    value={order.status}
+                                    onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                                  >
+                                    {orderStatuses.map((status) => (
+                                      <option key={status} value={status}>
+                                        {status}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
                               </td>
                               <td className="px-4 text-end">
                                 <button
