@@ -192,11 +192,11 @@ flowchart LR
     ManageOrder --- AdminLogin
     ManageCustomer --- AdminLogin
 
-    ManageOrder -.->|«include»| Track
-    ManageProduct -.->|«include»| Browse
+    Track-.->|«include»| ManageOrder
+    Browse -.->|«include»| ManageProduct
 
-    SuperAdmin --- AdminLogin
-    SuperAdmin --- ManageAdmin
+    AdminLogin --- SuperAdmin
+    ManageAdmin --- SuperAdmin
 
 ```
 
