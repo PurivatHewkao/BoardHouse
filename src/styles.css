@@ -359,6 +359,21 @@ main {
   content: "$";
 }
 
+/* วงกลมอักษรย่อชื่อลูกค้า ใช้ในหน้า Dashboard และ Customers */
+.customer-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f5ede7;
+  color: var(--bh-brand);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
 /* --- Auth & role UI (Dew) --- */
 .user-chip {
   display: inline-flex;
