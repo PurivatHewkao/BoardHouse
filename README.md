@@ -235,6 +235,9 @@ classDiagram
         - float price
         - string description
         - string category
+        + addproduct() void
+        + updateproduct() void
+        
     }
 
     class Order {
