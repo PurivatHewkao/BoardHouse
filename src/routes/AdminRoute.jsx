@@ -36,16 +36,75 @@ function AdminRoute() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderSearch, setOrderSearch] = useState("");
 
+  // 🔎 ช่องค้นหาในหน้ารายชื่อลูกค้า
+  const [customerSearch, setCustomerSearch] = useState("");
+
   const { products, orders, users } = dashboardData;
   const customers = users.filter((user) => user.role === "customer");
   const revenue = orders.reduce((sum, order) => sum + order.total, 0);
-  
+
+  // 💡 รวมสถิติการใช้งานของลูกค้าแต่ละคน โดยจับคู่ออเดอร์ (order.userId) กับผู้ใช้ (user.id)
+  //    ได้ออกมาเป็น จำนวนออเดอร์ / ยอดซื้อรวม / วันที่สั่งซื้อล่าสุด ของลูกค้าทุกคน
+  const customersWithStats = customers.map((customer) => {
+    const customerOrders = orders.filter((order) => order.userId === customer.id);
+    const totalSpent = customerOrders.reduce((sum, order) => sum + order.total, 0);
+    const lastOrderDate = customerOrders.reduce(
+      (latest, order) => (!latest || order.date > latest ? order.date : latest),
+      ""
+    );
+    return {
+      ...customer,
+      orderCount: customerOrders.length,
+      totalSpent,
+      lastOrderDate,
+    };
+  });
+
+  // ลูกค้าที่ "เข้ามาใช้บริการจริง" = มีออเดอร์อย่างน้อย 1 รายการ
+  const activeCustomerCount = customersWithStats.filter((c) => c.orderCount > 0).length;
+
+  // กรองรายชื่อตามคำค้น (ชื่อ / อีเมล / เบอร์โทร)
+  const filteredCustomers = customersWithStats.filter((customer) => {
+    const keyword = customerSearch.trim().toLowerCase();
+    if (!keyword) return true;
+    return (
+      customer.name.toLowerCase().includes(keyword) ||
+      customer.email.toLowerCase().includes(keyword) ||
+      (customer.phone || "").toLowerCase().includes(keyword)
+    );
+  });
+
+  // ออเดอร์ล่าสุด 5 รายการ (ใช้โชว์บนแดชบอร์ด)
+  const recentOrders = [...orders]
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 5)
+    .map((order) => ({
+      ...order,
+      customerName: users.find((user) => user.id === order.userId)?.name || "ผู้เยี่ยมชม",
+    }));
+
+  // ลูกค้าที่ซื้อเยอะสุด 5 อันดับ (ใช้โชว์บนแดชบอร์ด)
+  const topCustomers = [...customersWithStats]
+    .filter((customer) => customer.orderCount > 0)
+    .sort((a, b) => b.totalSpent - a.totalSpent)
+    .slice(0, 5);
+
   const stats = [
     { label: "Total Products", value: products.length, icon: "box" },
     { label: "Total Orders", value: orders.length, icon: "bag" },
     { label: "Total Customers", value: customers.length, icon: "users" },
     { label: "Total Sales", value: money(revenue), icon: "cash" },
   ];
+
+  // แปลงชื่อลูกค้าเป็นอักษรย่อ ใช้ทำไอคอนวงกลม avatar
+  function initials(name) {
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0].toUpperCase())
+      .join("");
+  }
 
   function refreshData() {
     setDashboardData({
@@ -160,6 +219,9 @@ function AdminRoute() {
               <button className={`list-group-item list-group-item-action ${currentTab === "products" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("products")}>
                 Products
               </button>
+              <button className={`list-group-item list-group-item-action ${currentTab === "customers" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("customers")}>
+                Customers
+              </button>
               <button className={`list-group-item list-group-item-action ${currentTab === "orders" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("orders")}>
                 Orders
               </button>
@@ -197,6 +259,179 @@ function AdminRoute() {
                       </article>
                     </div>
                   ))}
+                </div>
+
+                {/* แถวล่าง: ออเดอร์ล่าสุด + ลูกค้าซื้อเยอะสุด */}
+                <div className="row g-4 mt-1">
+                  <div className="col-lg-7">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-4">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <h5 className="mb-0">Recent Orders</h5>
+                          <button className="btn btn-sm btn-link text-decoration-none p-0" type="button" onClick={() => setCurrentTab("orders")}>
+                            ดูทั้งหมด →
+                          </button>
+                        </div>
+                        {recentOrders.length === 0 ? (
+                          <p className="text-muted mb-0">ยังไม่มีคำสั่งซื้อในระบบ</p>
+                        ) : (
+                          <div className="table-responsive">
+                            <table className="table table-sm align-middle mb-0">
+                              <thead className="table-light">
+                                <tr>
+                                  <th className="py-2">รหัส</th>
+                                  <th className="py-2">ลูกค้า</th>
+                                  <th className="py-2">วันที่</th>
+                                  <th className="py-2 text-end">ยอด</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {recentOrders.map((order) => (
+                                  <tr key={order.id}>
+                                    <td className="text-muted">{order.id}</td>
+                                    <td className="fw-semibold">{order.customerName}</td>
+                                    <td className="text-muted">{order.date}</td>
+                                    <td className="text-end">{money(order.total)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-5">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-4">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <h5 className="mb-0">Top Customers</h5>
+                          <button className="btn btn-sm btn-link text-decoration-none p-0" type="button" onClick={() => setCurrentTab("customers")}>
+                            ดูทั้งหมด →
+                          </button>
+                        </div>
+                        {topCustomers.length === 0 ? (
+                          <p className="text-muted mb-0">ยังไม่มีลูกค้าที่สั่งซื้อ</p>
+                        ) : (
+                          <ul className="list-group list-group-flush">
+                            {topCustomers.map((customer, index) => (
+                              <li key={customer.id} className="list-group-item d-flex align-items-center gap-3 px-0">
+                                <span className="customer-avatar">{initials(customer.name)}</span>
+                                <div className="flex-grow-1">
+                                  <span className="fw-semibold d-block">{customer.name}</span>
+                                  <small className="text-muted">{customer.orderCount} ออเดอร์</small>
+                                </div>
+                                <span className="fw-bold text-nowrap">{money(customer.totalSpent)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ================= หน้า CUSTOMERS (รายชื่อลูกค้าที่เข้ามาใช้บริการ) ================= */}
+            {currentTab === "customers" && (
+              <>
+                <div className="mb-4">
+                  <h1 className="page-title mb-2">Customers</h1>
+                  <p className="lead text-muted mb-0">รายชื่อลูกค้าที่สมัครและเข้ามาใช้บริการเว็บไซต์</p>
+                </div>
+
+                <div className="row row-cols-1 row-cols-md-3 g-3 mb-4">
+                  <div className="col">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-3">
+                        <p className="mb-1 text-muted small">ลูกค้าทั้งหมด</p>
+                        <strong className="h3">{customers.length}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-3">
+                        <p className="mb-1 text-muted small">เคยสั่งซื้อ</p>
+                        <strong className="h3">{activeCustomerCount}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-3">
+                        <p className="mb-1 text-muted small">ยอดซื้อรวม</p>
+                        <strong className="h3">{money(revenue)}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-3 border-bottom">
+                    <input
+                      type="search"
+                      className="form-control"
+                      placeholder="🔎 ค้นหาชื่อ อีเมล หรือเบอร์โทรลูกค้า..."
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="card-body p-0">
+                    <div className="table-responsive">
+                      <table className="table table-hover align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th className="px-4 py-3">ลูกค้า</th>
+                            <th className="py-3">ติดต่อ</th>
+                            <th className="py-3 text-center">ออเดอร์</th>
+                            <th className="py-3 text-end">ยอดซื้อรวม</th>
+                            <th className="py-3">สั่งซื้อล่าสุด</th>
+                            <th className="px-4 py-3 text-center">สถานะ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredCustomers.length === 0 ? (
+                            <tr>
+                              <td colSpan="6" className="text-center text-muted py-5">
+                                ไม่พบลูกค้าที่ตรงกับคำค้นหา
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredCustomers.map((customer) => (
+                              <tr key={customer.id}>
+                                <td className="px-4">
+                                  <div className="d-flex align-items-center gap-3">
+                                    <span className="customer-avatar">{initials(customer.name)}</span>
+                                    <div>
+                                      <span className="fw-semibold text-dark d-block">{customer.name}</span>
+                                      <small className="text-muted">#{customer.id}</small>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className="d-block text-dark">{customer.email}</span>
+                                  <small className="text-muted">{customer.phone || "—"}</small>
+                                </td>
+                                <td className="text-center">{customer.orderCount}</td>
+                                <td className="text-end fw-semibold">{money(customer.totalSpent)}</td>
+                                <td className="text-muted">{customer.lastOrderDate || "—"}</td>
+                                <td className="text-center">
+                                  {customer.orderCount > 0 ? (
+                                    <span className="badge bg-success-subtle text-success px-2 py-1">Active</span>
+                                  ) : (
+                                    <span className="badge bg-light border text-muted px-2 py-1">ยังไม่สั่งซื้อ</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </>
             )}
