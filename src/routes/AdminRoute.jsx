@@ -19,12 +19,18 @@ function AdminRoute() {
     users: getUsers(),
   }));
 
-  // State ฟิลด์ข้อมูลสินค้า
+  // State ฟิลด์ข้อมูลสินค้าทั่วไป
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newStock, setNewStock] = useState("");
-  const [newImage, setNewImage] = useState("");
+  const [newImage, setNewImage] = useState(""); // ตัวนี้จะเก็บได้ทั้ง URL และ Base64 String ค่ะ
   const [newDescription, setNewDescription] = useState("");
+  
+  // 💡 เพิ่ม State สำหรับตัวกรองอายุและจำนวนผู้เล่น
+  const [newMinAge, setNewMinAge] = useState(8);
+  const [newMinPlayers, setNewMinPlayers] = useState(2);
+  const [newMaxPlayers, setNewMaxPlayers] = useState(4);
+
   // 💡 เพิ่ม State สำหรับเลือกประเภทสินค้า (เริ่มต้นเลือกประเภทแรกที่ไม่ใช่ "All")
   const [newCategory, setNewCategory] = useState(() => {
     const defaultCat = categories.find(cat => cat !== "All");
@@ -61,6 +67,25 @@ function AdminRoute() {
     setMessage("Mock data has been reset.");
   }
 
+  // 🖼️ ฟังก์ชันแปลง "ไฟล์รูปภาพในเครื่อง" ให้เป็น Base64 String เพื่อเก็บใน localStorage
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // จำกัดขนาดไฟล์ที่ 1.5MB เพื่อไม่ให้เกินโควต้าสูงสุดของ localStorage (5MB)
+      if (file.size > 1.5 * 1024 * 1024) {
+        alert("ไฟล์ภาพมีขนาดใหญ่เกินไปค่ะ (ไม่ควรเกิน 1.5MB) เพื่อป้องกันพื้นที่จัดเก็บข้อมูลในเบราว์เซอร์เต็ม");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // เมื่อแปลงเสร็จ จะได้ Base64 String แล้วนำไปเก็บไว้ใน State ของรูปภาพ
+        setNewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   function handleSaveProduct(e) {
     e.preventDefault();
     if (!newName || !newPrice || !newStock) {
@@ -68,14 +93,17 @@ function AdminRoute() {
       return;
     }
 
-    // 💡 แพ็กข้อมูลส่งเข้าระบบ โดยรอบนี้มีประเภทสินค้า (category) ติดไปด้วยแล้ว!
+    // 💡 แพ็กข้อมูลส่งเข้าระบบ รวมถึงหมวดหมู่, ตัวกรองอายุ และตัวกรองจำนวนผู้เล่นแล้ว!
     const itemData = {
       name: newName,
       price: Number(newPrice),
       stock: Number(newStock),
       image: newImage || "https://placehold.co/300x200?text=No+Image",
       description: newDescription, 
-      category: newCategory, 
+      category: newCategory,
+      minAge: Number(newMinAge),
+      minPlayers: Number(newMinPlayers),
+      maxPlayers: Number(newMaxPlayers),
     };
 
     if (editingId) {
@@ -86,16 +114,8 @@ function AdminRoute() {
     }
     
     refreshData();
-
-    // เคลียร์ฟอร์ม
-    setNewName("");
-    setNewPrice("");
-    setNewStock("");
-    setNewImage("");
-    setNewDescription("");
-    const defaultCat = categories.find(cat => cat !== "All");
-    setNewCategory(defaultCat || "General");
-    alert("บันทึกข้อมูลสินค้าและประเภทเรียบร้อยแล้วค่ะ!");
+    clearForm();
+    alert("บันทึกข้อมูลสินค้าและเงื่อนไขตัวกรองเรียบร้อยแล้วค่ะ!");
   }
 
   function handleEditClick(product) {
@@ -107,6 +127,11 @@ function AdminRoute() {
     setNewDescription(product.description || "");
     // ดึงประเภทเดิมของสินค้าชิ้นนั้นขึ้นมาแสดงใน Dropdown ค้างไว้
     setNewCategory(product.category || categories.find(cat => cat !== "All") || "General");
+    
+    // 💡 ดึงค่าตัวกรองเดิมมาแสดงใน Form ถ้าไม่มีข้อมูลดั้งเดิมจะใช้ค่าเริ่มต้น (8, 2, 4)
+    setNewMinAge(product.minAge !== undefined ? product.minAge : 8);
+    setNewMinPlayers(product.minPlayers !== undefined ? product.minPlayers : 2);
+    setNewMaxPlayers(product.maxPlayers !== undefined ? product.maxPlayers : 4);
   }
 
   function handleDeleteClick(id) {
@@ -114,6 +139,23 @@ function AdminRoute() {
       deleteProduct(id);
       refreshData();
     }
+  }
+
+  function clearForm() {
+    setNewName("");
+    setNewPrice("");
+    setNewStock("");
+    setNewImage("");
+    setNewDescription("");
+    const defaultCat = categories.find(cat => cat !== "All");
+    setNewCategory(defaultCat || "General");
+    setNewMinAge(8);
+    setNewMinPlayers(2);
+    setNewMaxPlayers(4);
+
+    // รีเซ็ตค่าในช่อง Input File บนหน้าเว็บด้วย
+    const fileInput = document.getElementById("localImageUpload");
+    if (fileInput) fileInput.value = "";
   }
 
   function getCustomerName(userId) {
@@ -201,7 +243,7 @@ function AdminRoute() {
               <>
                 <div className="mb-4">
                   <h1 className="page-title mb-2">Products Management</h1>
-                  <p className="lead text-muted mb-0">จัดการข้อมูลสต็อก รูปภาพ รายละเอียด และประเภทสินค้า</p>
+                  <p className="lead text-muted mb-0">จัดการข้อมูลสต็อก รูปภาพ รายละเอียด และเงื่อนไขตัวกรองบอร์ดเกม</p>
                 </div>
 
                 <div className="card border-0 shadow-sm mb-4">
@@ -211,28 +253,15 @@ function AdminRoute() {
                     </h5>
                     <form onSubmit={handleSaveProduct} className="row g-3">
                       <div className="col-md-6">
-                        <label className="form-label small text-muted">ชื่อสินค้า</label>
+                        <label className="form-label small text-muted fw-bold">ชื่อสินค้า</label>
                         <input type="text" className="form-control" placeholder="เช่น Catan, Dixit" value={newName} onChange={(e) => setNewName(e.target.value)} />
                       </div>
+
                       <div className="col-md-6">
-                        <label className="form-label small text-muted">ลิงก์ URL รูปภาพสินค้า</label>
-                        <input type="text" className="form-control" placeholder="https://..." value={newImage} onChange={(e) => setNewImage(e.target.value)} />
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted">ราคาขาย (บาท)</label>
-                        <input type="number" className="form-control" placeholder="ราคาสินค้า" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} />
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted">จำนวนในสต็อก (ชิ้น)</label>
-                        <input type="number" className="form-control" placeholder="จำนวนสินค้าในคลัง" value={newStock} onChange={(e) => setNewStock(e.target.value)} />
-                      </div>
-                      
-                      {/* 💡 เพิ่มกล่อง Dropdown สำหรับเลือกประเภทสินค้าตามที่กำหนดไว้ในหน้าโฮม */}
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted">ประเภทสินค้า</label>
+                        <label className="form-label small text-muted fw-bold">ประเภทสินค้า</label>
                         <select className="form-select" value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
                           {categories
-                            .filter((cat) => cat !== "All") // กรองเอาคำว่า "All" ออกไป ไม่ให้แอดมินเผลอไปกดตั้งค่าสินค้าเป็นประเภท "ทั้งหมด"
+                            .filter((cat) => cat !== "All") // กรองเอาคำว่า "All" ออกไป
                             .map((cat) => (
                               <option key={cat} value={cat}>
                                 {cat}
@@ -241,13 +270,71 @@ function AdminRoute() {
                         </select>
                       </div>
 
+                      {/* 🖼️ เลือกอัปโหลดรูปภาพได้ 2 แบบ: เลือกไฟล์จากเครื่อง หรือ กรอก URL */}
+                      <div className="col-md-6">
+                        <label className="form-label small text-muted fw-bold">อัปโหลดรูปภาพจากเครื่อง</label>
+                        <input 
+                          type="file" 
+                          id="localImageUpload"
+                          className="form-control" 
+                          accept="image/*" 
+                          onChange={handleImageUpload} 
+                        />
+                        <div className="form-text" style={{ fontSize: "0.75rem" }}>แปลงรูปเป็น Base64 บันทึกลงเครื่องโดยตรง</div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label small text-muted fw-bold">หรือ ลิงก์ URL รูปภาพสินค้า</label>
+                        <input type="text" className="form-control" placeholder="https://..." value={newImage} onChange={(e) => setNewImage(e.target.value)} />
+                      </div>
+
+                      {/* ส่วนแสดงภาพ Preview เล็ก ๆ */}
+                      {newImage && (
+                        <div className="col-12">
+                          <p className="small mb-1 text-muted">ตัวอย่างแสดงผลรูปภาพ:</p>
+                          <img src={newImage} alt="Preview" className="img-thumbnail" style={{ maxHeight: "80px", objectFit: "contain" }} />
+                        </div>
+                      )}
+
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted fw-bold">ราคาขาย (บาท)</label>
+                        <input type="number" className="form-control" placeholder="ราคาสินค้า" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted fw-bold">จำนวนในสต็อก (ชิ้น)</label>
+                        <input type="number" className="form-control" placeholder="จำนวนสินค้าในคลัง" value={newStock} onChange={(e) => setNewStock(e.target.value)} />
+                      </div>
+
+                      {/* 👶 ฟิลด์ตัวกรอง: อายุขั้นต่ำ */}
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted fw-bold">อายุแนะนำบนกล่อง (ปี+)</label>
+                        <input type="number" className="form-control" placeholder="เช่น 8" value={newMinAge} onChange={(e) => setNewMinAge(e.target.value)} min="0" />
+                      </div>
+
+                      {/* 👥 ฟิลด์ตัวกรอง: ช่วงจำนวนผู้เล่น */}
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted fw-bold">ผู้เล่นขั้นต่ำ (คน)</label>
+                        <input type="number" className="form-control" placeholder="เช่น 2" value={newMinPlayers} onChange={(e) => setNewMinPlayers(e.target.value)} min="1" />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label small text-muted fw-bold">ผู้เล่นสูงสุด (คน)</label>
+                        <input type="number" className="form-control" placeholder="เช่น 4" value={newMaxPlayers} onChange={(e) => setNewMaxPlayers(e.target.value)} min="1" />
+                      </div>
+
+                      <div className="col-md-4">
+                        {/* ปล่อยว่างเพื่อรักษาระยะ Grid 3 คอลัมน์ให้สมดุล */}
+                      </div>
+
                       <div className="col-12">
-                        <label className="form-label small text-muted">รายละเอียด / คำอธิบายสินค้า</label>
+                        <label className="form-label small text-muted fw-bold">รายละเอียด / คำอธิบายสินค้า</label>
                         <textarea className="form-control" rows="3" placeholder="เขียนอธิบายสรรพคุณสินค้า..." value={newDescription} onChange={(e) => setNewDescription(e.target.value)}></textarea>
                       </div>
+
                       <div className="col-12 d-flex gap-2 justify-content-end pt-2">
                         {editingId && (
-                          <button type="button" className="btn btn-light border" onClick={() => { setEditingId(null); setNewName(""); setNewPrice(""); setNewStock(""); setNewImage(""); setNewDescription(""); }}>
+                          <button type="button" className="btn btn-light border" onClick={clearForm}>
                             ยกเลิกแก้ไข
                           </button>
                         )}
@@ -267,7 +354,8 @@ function AdminRoute() {
                           <tr>
                             <th className="px-4 py-3">ID</th>
                             <th className="py-3">สินค้า</th>
-                            <th className="py-3">ประเภท</th> {/* 💡 เพิ่มคอลัมน์โชว์ประเภทสินค้าในตารางแอดมิน */}
+                            <th className="py-3">ประเภท</th>
+                            <th className="py-3">ช่วงผู้เล่น / อายุ</th> {/* 💡 คอลัมน์สรุปข้อมูลตัวกรอง */}
                             <th className="py-3">ราคา</th>
                             <th className="py-3">คงเหลือ</th>
                             <th className="px-4 py-3 text-end">เครื่องมือ</th>
@@ -286,11 +374,17 @@ function AdminRoute() {
                                   </div>
                                 </div>
                               </td>
-                              {/* 💡 โชว์ป้ายประเภทสินค้าเพื่อความง่ายในการตรวจสอบ */}
                               <td>
                                 <span className="badge rounded-pill bg-light border text-dark">
                                   {product.category || "General"}
                                 </span>
+                              </td>
+                              {/* 💡 แสดงข้อมูลตัวกรองของเกมบนตารางสินค้า */}
+                              <td>
+                                <div style={{ fontSize: "0.85rem" }}>
+                                  <div className="text-muted">👥 {product.minPlayers || 2} - {product.maxPlayers || 4} คน</div>
+                                  <div className="text-muted">👶 {product.minAge || 8} ปีขึ้นไป</div>
+                                </div>
                               </td>
                               <td>{product.price.toLocaleString()} บาท</td>
                               <td>
