@@ -138,6 +138,8 @@ Miro : https://miro.com/app/board/uXjVH-d1Rmk=/?share_link_id=553190737674
 ```mermaid
 flowchart LR
     Customer["👤<br/>Customer"]
+
+    %% ฝั่งขวา
     Admin["👤<br/>Admin"]
     SuperAdmin["👤<br/>SuperAdmin"]
 
