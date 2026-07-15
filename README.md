@@ -332,7 +332,7 @@ sequenceDiagram
         Note over Customer,OrderDetail: Checkout
         Customer->>Cart: ชำระเงิน
         Cart->>Order: สร้างคำสั่งซื้อ
-        Order->>CartProduct: ดึงรายการสินค้าในตะกร้า
+        Order->>CartProduct: ดึงรายการสินค้า
         CartProduct-->>Order: รายการสินค้า + จำนวน
 
         loop สำหรับแต่ละสินค้าในตะกร้า
