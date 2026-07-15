@@ -166,12 +166,12 @@ flowchart LR
         ManageAdmin([Manage Admin])
     end
 
-    Customer -- Browse
-    Customer -- LoginCustomer
-    Customer -- Search
-    Customer -- Detail
-    Customer -- Addon
-    Customer -- Cancel
+    Customer --- Browse
+    Customer --- LoginCustomer
+    Customer ---Search
+    Customer --- Detail
+    Customer --- Addon
+    Customer --- Cancel
 
     LoginCustomer --> Ordering
     LoginCustomer --> History
@@ -185,17 +185,17 @@ flowchart LR
     History -.->|«include»| Track
     Cancel -.->|«extend»| History
 
-    Admin -- AdminLogin
-    AdminLogin -- Dashboard
-    AdminLogin -- ManageProduct
-    AdminLogin -- ManageOrder
-    AdminLogin -- ManageCustomer
+    Admin --- AdminLogin
+    AdminLogin --- Dashboard
+    AdminLogin --- ManageProduct
+    AdminLogin --- ManageOrder
+    AdminLogin --- ManageCustomer
 
     ManageOrder -.->|«include»| Track
     ManageProduct -.->|«include»| Browse
 
-    SuperAdmin -- AdminLogin
-    SuperAdmin -- ManageAdmin
+    SuperAdmin --- AdminLogin
+    SuperAdmin --- ManageAdmin
 
 ```
 
