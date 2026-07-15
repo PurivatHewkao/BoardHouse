@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { money } from "../utils/format.js";
 import { getOrders } from "../utils/orderStorage.js";
+import { isAdmin } from "../utils/roles.js";
 import OrderDetailModal from "../components/OrderDetailModal.jsx";
 
 function OrdersRoute({ currentUser }) {
@@ -8,7 +9,7 @@ function OrdersRoute({ currentUser }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const visibleOrders = useMemo(() => {
-    if (!currentUser || currentUser.role === "admin") {
+    if (!currentUser || isAdmin(currentUser)) {
       return orders;
     }
 

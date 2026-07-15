@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { loginUser, registerUser } from "../utils/userStorage.js";
+import { isAdmin } from "../utils/roles.js";
 
 export function LoginRoute({ setPage, setCurrentUser }) {
   const [email, setEmail] = useState("jane@example.com");
@@ -16,7 +17,7 @@ export function LoginRoute({ setPage, setCurrentUser }) {
 
     setCurrentUser(user);
     setMessage(`Logged in as ${user.name}.`);
-    setPage(user.role === "admin" ? "Admin" : "Home");
+    setPage(isAdmin(user) ? "Admin" : "Home");
   }
 
   return (
