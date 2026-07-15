@@ -539,6 +539,15 @@ export const users = [
     phone: "080-000-0000",
     address: null,
   },
+  {
+    id: 3,
+    role: "superadmin",
+    name: "BoardHouse Super Admin",
+    email: "superadmin@boardhouse.test",
+    password: "superadmin123",
+    phone: "080-000-0001",
+    address: null,
+  },
 ];
 
 export const currentUser = users[0];

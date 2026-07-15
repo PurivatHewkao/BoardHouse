@@ -402,6 +402,13 @@ main {
   color: #fffaf5;
 }
 
+/* super admin ใช้โทนเข้มกว่า admin ปกติ เพื่อให้แยกลำดับสิทธิ์ออกจากกันได้ทันที */
+.role-badge.superadmin {
+  background: var(--bh-brand-dark);
+  color: #fffaf5;
+  box-shadow: 0 0 0 1.5px #fffaf5 inset;
+}
+
 .role-badge.customer {
   background: #e7d9c4;
   color: #4a3a28;
