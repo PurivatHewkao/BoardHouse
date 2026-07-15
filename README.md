@@ -139,6 +139,7 @@ Miro : https://miro.com/app/board/uXjVH-d1Rmk=/?share_link_id=553190737674
 flowchart LR
     Customer["👤<br/>Customer"]
     Admin["👤<br/>Admin"]
+    SuperAdmin["👤<br/>SuperAdmin"]
 
     subgraph System["เว็บซื้อขายบอร์ดเกม"]
         Browse([Browse Boardgame])
@@ -162,14 +163,15 @@ flowchart LR
         ManageProduct([Manage Product])
         ManageOrder([Manage Order])
         ManageCustomer([Manage Customer])
+        ManageAdmin([Manage Admin])
     end
 
-    Customer --> Browse
-    Customer --> LoginCustomer
-    Customer --> Search
-    Customer --> Detail
-    Customer --> Addon
-    Customer --> Cancel
+    Customer -- Browse
+    Customer -- LoginCustomer
+    Customer -- Search
+    Customer -- Detail
+    Customer -- Addon
+    Customer -- Cancel
 
     LoginCustomer --> Ordering
     LoginCustomer --> History
@@ -183,14 +185,17 @@ flowchart LR
     History -.->|«include»| Track
     Cancel -.->|«extend»| History
 
-    Admin --> AdminLogin
-    AdminLogin --> Dashboard
-    AdminLogin --> ManageProduct
-    AdminLogin --> ManageOrder
-    AdminLogin --> ManageCustomer
+    Admin -- AdminLogin
+    AdminLogin -- Dashboard
+    AdminLogin -- ManageProduct
+    AdminLogin -- ManageOrder
+    AdminLogin -- ManageCustomer
 
     ManageOrder -.->|«include»| Track
     ManageProduct -.->|«include»| Browse
+
+    SuperAdmin -- AdminLogin
+    SuperAdmin -- ManageAdmin
 
 ```
 
