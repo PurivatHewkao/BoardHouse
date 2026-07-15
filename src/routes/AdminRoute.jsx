@@ -587,8 +587,10 @@ function AdminRoute() {
                               <td className="px-4 fw-semibold text-dark">{order.id}</td>
                               <td>{getCustomerName(order.userId)}</td>
                               <td className="text-muted">{order.date}</td>
-                              <td className="text-muted text-truncate d-block" style={{ maxWidth: "220px" }}>
-                                {order.items}
+                              <td className="text-muted">
+                                <span className="text-truncate d-block" style={{ maxWidth: "220px" }}>
+                                  {order.items}
+                                </span>
                               </td>
                               <td className="text-brand fw-semibold">{money(order.total)}</td>
                               <td>
