@@ -139,7 +139,6 @@ Miro : https://miro.com/app/board/uXjVH-d1Rmk=/?share_link_id=553190737674
 flowchart LR
     Customer["👤<br/>Customer"]
 
-    %% ฝั่งขวา
     Admin["👤<br/>Admin"]
     SuperAdmin["👤<br/>SuperAdmin"]
 
@@ -187,11 +186,11 @@ flowchart LR
     History -.->|«include»| Track
     Cancel -.->|«extend»| History
 
-    Admin --- AdminLogin
-    AdminLogin --- Dashboard
-    AdminLogin --- ManageProduct
-    AdminLogin --- ManageOrder
-    AdminLogin --- ManageCustomer
+    AdminLogin --- Admin
+    Dashboard --- AdminLogin
+    ManageProduct --- AdminLogin
+    ManageOrder --- AdminLogin
+    ManageCustomer --- AdminLogin
 
     ManageOrder -.->|«include»| Track
     ManageProduct -.->|«include»| Browse
