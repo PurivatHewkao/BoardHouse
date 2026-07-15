@@ -141,8 +141,7 @@ function AdminRoute({ currentUser }) {
 
   function handleResetData() {
     resetStorage();
-    refreshData();
-    setMessage("Mock data has been reset.");
+    window.location.reload();
   }
 
   // ทุก action ของหน้า Admins วิ่งผ่าน helper ใน userStorage.js ที่เช็คสิทธิ์ซ้ำอีกชั้น
