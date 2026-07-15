@@ -6,6 +6,10 @@
 
 <p align="center"> เว็บไซต์ eCommerce สำหรับร้านจำหน่ายบอร์ดเกมบนเว็บไซต์ ผู้ใช้สามารถเลือกดูสินค้า</p>
 
+https://house-board-swart.vercel.app/
+Admin: admin@boardhouse.test / admin123
+Customer: jane@example.com / password
+
 รายชิ่อสมาชิกกลุ่ม
 
 | ลำดับ | ชื่อ-นามสกุล            | กลุ่ม | รหัสนักศึกษา | ตำแหน่ง |
