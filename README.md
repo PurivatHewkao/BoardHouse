@@ -322,7 +322,7 @@ sequenceDiagram
         Customer->>Product: เลือกสินค้า
         Product-->>Customer: แสดงรายละเอียดสินค้า
         Customer->>Cart: เพิ่มสินค้า
-        Cart->>CartProduct: สร้างรายการ
+        Cart->>CartProduct: ดูรายการ
         CartProduct-->>Cart: เพิ่มรายการสำเร็จ
         Cart->>Cart: คำนวณยอดรวม
         Cart-->>Customer: แสดงข้อมูลรวมในตะกร้า
