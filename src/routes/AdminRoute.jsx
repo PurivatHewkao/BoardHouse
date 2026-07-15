@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { getOrders, updateOrderStatus } from "../utils/orderStorage.js";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../utils/productStorage.js";
-import { getUsers } from "../utils/userStorage.js";
+import {
+  createAdmin,
+  deleteAdmin,
+  demoteToCustomer,
+  getUsers,
+  promoteToAdmin,
+} from "../utils/userStorage.js";
+import { canManageAdmins, isCustomer, isSuperAdmin, ROLES } from "../utils/roles.js";
 import { money } from "../utils/format.js";
 import { resetStorage } from "../utils/localStorageDb.js";
 // 💡 ดึงประเภทหมวดหมู่เดียวกับหน้าโฮมมาใช้ (ถ้าดึงจากไฟล์นี้ไม่ได้ ให้เปลี่ยนพาธให้ตรงกับโปรเจกต์หนูนะคะ)
@@ -9,7 +16,7 @@ import { categories } from "../data/products.js";
 import { orderStatuses } from "../data/seedData.js";
 import OrderDetailModal from "../components/OrderDetailModal.jsx";
 
-function AdminRoute() {
+function AdminRoute({ currentUser }) {
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [message, setMessage] = useState("");
   
@@ -39,9 +46,21 @@ function AdminRoute() {
   // 🔎 ช่องค้นหาในหน้ารายชื่อลูกค้า
   const [customerSearch, setCustomerSearch] = useState("");
 
+  // State หน้า Admins (เฉพาะ super admin) — ฟอร์มเพิ่ม admin ใหม่ + ช่องเลือกลูกค้าที่จะเลื่อนขั้น
+  const [adminName, setAdminName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
+  const [promoteId, setPromoteId] = useState("");
+  const [adminError, setAdminError] = useState("");
+
   const { products, orders, users } = dashboardData;
-  const customers = users.filter((user) => user.role === "customer");
+  const customers = users.filter(isCustomer);
   const revenue = orders.reduce((sum, order) => sum + order.total, 0);
+
+  // super admin เท่านั้นที่เห็นแท็บ Admins และสั่งงานในนั้นได้
+  const canManage = canManageAdmins(currentUser);
+  const admins = users.filter((user) => user.role === ROLES.ADMIN || isSuperAdmin(user));
 
   // 💡 รวมสถิติการใช้งานของลูกค้าแต่ละคน โดยจับคู่ออเดอร์ (order.userId) กับผู้ใช้ (user.id)
   //    ได้ออกมาเป็น จำนวนออเดอร์ / ยอดซื้อรวม / วันที่สั่งซื้อล่าสุด ของลูกค้าทุกคน
@@ -118,6 +137,67 @@ function AdminRoute() {
     resetStorage();
     refreshData();
     setMessage("Mock data has been reset.");
+  }
+
+  // ทุก action ของหน้า Admins วิ่งผ่าน helper ใน userStorage.js ที่เช็คสิทธิ์ซ้ำอีกชั้น
+  // UI ซ่อนแท็บให้แล้วก็จริง แต่ helper ไม่เชื่อ UI
+  function applyAdminResult(result) {
+    if (!result.ok) {
+      setAdminError(result.message);
+      return false;
+    }
+
+    setAdminError("");
+    refreshData();
+    setMessage(result.message);
+    return true;
+  }
+
+  function handleCreateAdmin(e) {
+    e.preventDefault();
+    const result = createAdmin({
+      actor: currentUser,
+      name: adminName,
+      email: adminEmail,
+      password: adminPassword,
+      phone: adminPhone,
+    });
+
+    if (applyAdminResult(result)) {
+      setAdminName("");
+      setAdminEmail("");
+      setAdminPassword("");
+      setAdminPhone("");
+    }
+  }
+
+  function handlePromote(e) {
+    e.preventDefault();
+
+    if (!promoteId) {
+      setAdminError("กรุณาเลือกลูกค้าที่ต้องการเลื่อนขั้น");
+      return;
+    }
+
+    if (applyAdminResult(promoteToAdmin(currentUser, Number(promoteId)))) {
+      setPromoteId("");
+    }
+  }
+
+  function handleDemote(user) {
+    if (!confirm(`ลดขั้น "${user.name}" กลับเป็นลูกค้าใช่ไหม?`)) {
+      return;
+    }
+
+    applyAdminResult(demoteToCustomer(currentUser, user.id));
+  }
+
+  function handleDeleteAdmin(user) {
+    if (!confirm(`ลบบัญชี admin "${user.name}" ถาวรใช่ไหม?`)) {
+      return;
+    }
+
+    applyAdminResult(deleteAdmin(currentUser, user.id));
   }
 
   function handleSaveProduct(e) {
@@ -220,6 +300,11 @@ function AdminRoute() {
               <button className={`list-group-item list-group-item-action ${currentTab === "orders" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("orders")}>
                 Orders
               </button>
+              {canManage && (
+                <button className={`list-group-item list-group-item-action ${currentTab === "admins" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("admins")}>
+                  Admins
+                </button>
+              )}
             </div>
           </aside>
 
@@ -423,6 +508,169 @@ function AdminRoute() {
                               </tr>
                             ))
                           )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ================= หน้า ADMINS (เฉพาะ Super Admin) ================= */}
+            {currentTab === "admins" && canManage && (
+              <>
+                <div className="mb-4">
+                  <h1 className="page-title mb-2">Admins</h1>
+                  <p className="lead text-muted mb-0">
+                    จัดการทีมผู้ดูแลระบบ — เฉพาะ Super Admin เท่านั้นที่เข้าหน้านี้ได้
+                  </p>
+                </div>
+
+                {adminError && <div className="alert alert-danger border-0 shadow-sm">{adminError}</div>}
+                {message && <div className="alert alert-success border-0 shadow-sm">{message}</div>}
+
+                <div className="row g-3 mb-4">
+                  <div className="col-lg-7">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-3">
+                        <h2 className="h6 mb-3">เพิ่ม Admin ใหม่</h2>
+                        <form className="row g-2" onSubmit={handleCreateAdmin}>
+                          <div className="col-md-6">
+                            <input
+                              className="form-control"
+                              placeholder="ชื่อ-นามสกุล"
+                              value={adminName}
+                              onChange={(e) => setAdminName(e.target.value)}
+                            />
+                          </div>
+                          <div className="col-md-6">
+                            <input
+                              className="form-control"
+                              type="email"
+                              placeholder="อีเมล"
+                              value={adminEmail}
+                              onChange={(e) => setAdminEmail(e.target.value)}
+                            />
+                          </div>
+                          <div className="col-md-6">
+                            <input
+                              className="form-control"
+                              type="password"
+                              placeholder="รหัสผ่าน"
+                              value={adminPassword}
+                              onChange={(e) => setAdminPassword(e.target.value)}
+                            />
+                          </div>
+                          <div className="col-md-6">
+                            <input
+                              className="form-control"
+                              placeholder="เบอร์โทร (ไม่บังคับ)"
+                              value={adminPhone}
+                              onChange={(e) => setAdminPhone(e.target.value)}
+                            />
+                          </div>
+                          <div className="col-12">
+                            <button className="btn btn-boardhouse w-100" type="submit">
+                              เพิ่ม Admin
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-5">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-3">
+                        <h2 className="h6 mb-3">เลื่อนขั้นลูกค้าเป็น Admin</h2>
+                        <form className="vstack gap-2" onSubmit={handlePromote}>
+                          <select
+                            className="form-select"
+                            value={promoteId}
+                            onChange={(e) => setPromoteId(e.target.value)}
+                          >
+                            <option value="">— เลือกลูกค้า —</option>
+                            {customers.map((customer) => (
+                              <option key={customer.id} value={customer.id}>
+                                {customer.name} ({customer.email})
+                              </option>
+                            ))}
+                          </select>
+                          <button className="btn btn-boardhouse" type="submit">
+                            เลื่อนขั้นเป็น Admin
+                          </button>
+                          {customers.length === 0 && (
+                            <small className="text-muted">ยังไม่มีลูกค้าให้เลื่อนขั้น</small>
+                          )}
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-0">
+                    <div className="table-responsive">
+                      <table className="table table-hover align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th className="px-4 py-3">ผู้ดูแล</th>
+                            <th className="py-3">ติดต่อ</th>
+                            <th className="py-3 text-center">สิทธิ์</th>
+                            <th className="px-4 py-3 text-end">จัดการ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {admins.map((admin) => {
+                            const locked = isSuperAdmin(admin) || admin.id === currentUser?.id;
+
+                            return (
+                              <tr key={admin.id}>
+                                <td className="px-4">
+                                  <div className="d-flex align-items-center gap-3">
+                                    <span className="customer-avatar">{initials(admin.name)}</span>
+                                    <div>
+                                      <span className="fw-semibold text-dark d-block">{admin.name}</span>
+                                      <small className="text-muted">#{admin.id}</small>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className="d-block text-dark">{admin.email}</span>
+                                  <small className="text-muted">{admin.phone || "—"}</small>
+                                </td>
+                                <td className="text-center">
+                                  <span className={`role-badge ${admin.role}`}>
+                                    {isSuperAdmin(admin) ? "Super Admin" : "Admin"}
+                                  </span>
+                                </td>
+                                <td className="px-4 text-end">
+                                  {locked ? (
+                                    <small className="text-muted">
+                                      {admin.id === currentUser?.id ? "บัญชีของคุณ" : "แก้ไขไม่ได้"}
+                                    </small>
+                                  ) : (
+                                    <div className="btn-group btn-group-sm">
+                                      <button
+                                        className="btn btn-outline-secondary"
+                                        type="button"
+                                        onClick={() => handleDemote(admin)}
+                                      >
+                                        ลดขั้น
+                                      </button>
+                                      <button
+                                        className="btn btn-outline-danger"
+                                        type="button"
+                                        onClick={() => handleDeleteAdmin(admin)}
+                                      >
+                                        ลบ
+                                      </button>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
