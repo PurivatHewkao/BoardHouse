@@ -1,4 +1,4 @@
-import { currentUser as defaultCurrentUser, users as defaultUsers } from "../data/seedData.js";
+import { users as defaultUsers } from "../data/seedData.js";
 import { readStorage, storageKeys, writeStorage } from "./localStorageDb.js";
 import { canManageAdmins, isSuperAdmin, ROLES } from "./roles.js";
 
@@ -12,7 +12,7 @@ export function saveUsers(users) {
 }
 
 export function getCurrentUser() {
-  return readStorage(storageKeys.currentUser, defaultCurrentUser);
+  return readStorage(storageKeys.currentUser, null);
 }
 
 export function setCurrentUser(user) {

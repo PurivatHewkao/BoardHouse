@@ -285,6 +285,13 @@ main {
   max-width: 624px;
 }
 
+.demo-accounts {
+  border: 1px solid var(--bh-line);
+  background: var(--bh-soft);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
 .list-group-item.active {
   background: var(--bh-brand);
   border-color: var(--bh-brand);

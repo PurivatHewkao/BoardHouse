@@ -4,7 +4,12 @@ export const storageKeys = {
   currentUser: "boardhouse-current-user",
   cart: "boardhouse-cart",
   orders: "boardhouse-orders",
+  seedVersion: "boardhouse-seed-version",
 };
+
+// บวกเลขนี้ทุกครั้งที่แก้ seed ด้านล่างแบบที่ของเก่าในเบราว์เซอร์จะใช้ต่อไม่ได้ (เช่น เพิ่ม user/role ใหม่)
+// เบราว์เซอร์ที่ยังถือ seed เวอร์ชันเก่าจะโดนล้างแล้ว seed ใหม่ให้เองตอนเปิดแอป
+export const seedVersion = 2;
 
 // อัปเดตหมวดหมู่เพิ่มเติมให้ครอบคลุมประเภทบอร์ดเกมที่เพิ่มเข้ามาใหม่
 export const categories = [
@@ -550,7 +555,8 @@ export const users = [
   },
 ];
 
-export const currentUser = users[0];
+// เริ่มแอปแบบยังไม่ได้ login ผู้ใช้ต้องกด Login เองเสมอ
+export const currentUser = null;
 
 export const cart = [
   { productId: 1, quantity: 2 },

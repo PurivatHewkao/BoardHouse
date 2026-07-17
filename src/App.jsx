@@ -15,7 +15,6 @@ import {
   saveCart,
   updateCartQuantity,
 } from "./utils/cartStorage.js";
-import { seedStorage } from "./utils/localStorageDb.js";
 import { createOrder } from "./utils/orderStorage.js";
 import { getProducts, reduceProductStock, saveProducts } from "./utils/productStorage.js";
 import { getCurrentUser, logoutUser, setCurrentUser } from "./utils/userStorage.js";
@@ -26,10 +25,6 @@ function App() {
   const [products, setProducts] = useState(getProducts);
   const [cart, setCart] = useState(getInitialCart);
   const [currentUser, updateCurrentUser] = useState(getCurrentUser);
-
-  useEffect(() => {
-    seedStorage();
-  }, []);
 
   useEffect(() => {
     saveCart(cart);
