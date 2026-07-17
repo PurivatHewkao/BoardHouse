@@ -231,6 +231,16 @@ function AdminRoute({ currentUser }) {
       return;
     }
 
+    // 🛑 ดักจับป้องกันราคาและสต็อกสินค้าติดลบ
+    if (Number(newPrice) < 0) {
+      alert("ราคาสินค้าต้องไม่ติดลบนะคะ!");
+      return;
+    }
+    if (Number(newStock) < 0) {
+      alert("จำนวนสินค้าในสต็อกต้องไม่ติดลบนะคะ!");
+      return;
+    }
+
     // 💡 แพ็กข้อมูลส่งเข้าระบบ รวมถึงหมวดหมู่, ตัวกรองอายุ และตัวกรองจำนวนผู้เล่นแล้ว!
     const itemData = {
       name: newName,
@@ -785,12 +795,13 @@ function AdminRoute({ currentUser }) {
 
                       <div className="col-md-4">
                         <label className="form-label small text-muted fw-bold">ราคาขาย (บาท)</label>
-                        <input type="number" className="form-control" placeholder="ราคาสินค้า" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} />
+                        <input type="number" className="form-control" placeholder="ราคาสินค้า" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} min="0" />
                       </div>
 
+                      {/* ⬇️ ตรงนี้แหละค่ะ! พี่ใส่ min="0" เพื่อกันลูกศรกดลดลงจนติดลบแล้วนะคะ */}
                       <div className="col-md-4">
                         <label className="form-label small text-muted fw-bold">จำนวนในสต็อก (ชิ้น)</label>
-                        <input type="number" className="form-control" placeholder="จำนวนสินค้าในคลัง" value={newStock} onChange={(e) => setNewStock(e.target.value)} />
+                        <input type="number" className="form-control" placeholder="จำนวนสินค้าในคลัง" value={newStock} onChange={(e) => setNewStock(e.target.value)} min="0" />
                       </div>
 
                       {/* 👶 ฟิลด์ตัวกรอง: อายุขั้นต่ำ */}

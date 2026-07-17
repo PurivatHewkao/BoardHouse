@@ -607,5 +607,5 @@ export const seedData = {
   [storageKeys.users]: users,
   [storageKeys.currentUser]: currentUser,
   [storageKeys.cart]: cart,
-  [storageKeys.orders]: orders,
-};
+  [storageKeys.orders]: orders 
+}
