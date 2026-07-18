@@ -6,7 +6,7 @@
 
 <p align="center"> เว็บไซต์ eCommerce สำหรับร้านจำหน่ายบอร์ดเกมบนเว็บไซต์ ผู้ใช้สามารถเลือกดูสินค้า</p>
 
-https://house-board-swart.vercel.app/
+<p align="center"> https://house-board-swart.vercel.app/ </p>
 
 รายชิ่อสมาชิกกลุ่ม
 
@@ -512,7 +512,7 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 
 | ลำดับ | ชื่อ-นามสกุล            | กลุ่ม | รหัสนักศึกษา | ลิ้งค์ |
 | ----- | ----------------------- | ----- | ------------ | ----- |
-| 1     | Overall Team's UAT | ----- | ------------ | https://quilled-edge-054.notion.site/3a1dadaf37a28027bfbdcb58b847b5cf?v=514dadaf37a2823b85b188e55ac23683&source=copy_link |
+| 1     | Overall Team's UAT |  |  | https://app.notion.com/p/3a1dadaf37a28027bfbdcb58b847b5cf?v=514dadaf37a2823b85b188e55ac23683&source=copy_link |
 | 2     | ภูริวัชร์ จินดาพงษ์ศิริ | T003  | 67182803     | https://app.notion.com/p/3a1dadaf37a2809ba7b3dde503ed4837?v=7f1dadaf37a28299937c88bb8772b0cc&source=copy_link |
 | 3     | ภานุกร แสงมณี           | T001  | 67161002     | https://app.notion.com/p/3a1dadaf37a2803d9eeff2f8da04a69a?v=e83dadaf37a2830a95ab0806a4ed061a&source=copy_link |
 | 4     | บุรพร วันทอง            | T001  | 67167437     | https://app.notion.com/p/3a1dadaf37a280b79c33ec14abbc10b5?v=e32dadaf37a282baae72881bfe56a2fb&source=copy_link |
@@ -523,6 +523,11 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 ## Deployment
 
 ### Vercel
+ทีมเลือกให้ Vercel เนื่องจากสามารถทำได้ง่ายและรวจเร็ว </br>
+
+![](docs/images/deploy-vercel-1.png)
+
+![](docs/images/deploy-vercel-2.png)
 
 ### เหตุผลที่เลือก
 
