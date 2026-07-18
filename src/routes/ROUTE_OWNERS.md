@@ -9,7 +9,7 @@
 | 1 | Project Manager / Fullstack Developer | `src/App.jsx`, `src/utils/localStorageDb.js`, `src/data/seedData.js` |
 | 2 | Product Management Developer | `src/routes/HomeRoute.jsx`, `src/routes/AdminRoute.jsx`, `src/utils/productStorage.js` |
 | 3 | Cart and Checkout Developer | `src/routes/CartRoute.jsx`, `src/routes/OrdersRoute.jsx`, `src/utils/cartStorage.js`, `src/utils/orderStorage.js` |
-| 4 | Authentication and UI Developer | `src/routes/AuthRoutes.jsx`, `src/utils/userStorage.js`, `src/components/Header.jsx`, `src/components/Footer.jsx`, `src/styles.css` |
+| 4 | Authentication and UI Developer | `src/routes/AuthRoutes.jsx`, `src/routes/ProfileRoute.jsx`, `src/utils/userStorage.js`, `src/components/Header.jsx`, `src/components/Footer.jsx`, `src/styles.css` |
 
 ## Route Map
 
@@ -17,6 +17,7 @@
 - `CartRoute.jsx` = ตะกร้าสินค้า, quantity, remove item, checkout summary
 - `OrdersRoute.jsx` = ประวัติคำสั่งซื้อและสถานะ order
 - `AuthRoutes.jsx` = Login และ Register
+- `ProfileRoute.jsx` = ลูกค้าแก้ข้อมูลตัวเอง (ชื่อ อีเมล เบอร์ ที่อยู่) และเปลี่ยนรหัสผ่าน (C02)
 - `AdminRoute.jsx` = Dashboard ฝั่ง admin และต่อยอดเป็น product/order/customer management
 
 ## Storage Guide

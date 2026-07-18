@@ -7,6 +7,7 @@ import CheckoutRoute from "./routes/CheckoutRoute.jsx";
 import OrdersRoute from "./routes/OrdersRoute.jsx";
 import { LoginRoute, RegisterRoute } from "./routes/AuthRoutes.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx";
+import ProfileRoute from "./routes/ProfileRoute.jsx";
 import {
   addCartItem,
   clearCart,
@@ -106,6 +107,12 @@ function App() {
   }, [page, cartItems.length]);
 
   useEffect(() => {
+    if (page === "Profile" && !currentUser) {
+      setPage("Login");
+    }
+  }, [page, currentUser]);
+
+  useEffect(() => {
     if (page === "Admin" && !canAccessAdmin(currentUser)) {
       setPage("Home");
     }
@@ -135,6 +142,13 @@ function App() {
           />
         )}
         {page === "Orders" && <OrdersRoute currentUser={currentUser} />}
+        {page === "Profile" && (
+          <ProfileRoute
+            currentUser={currentUser}
+            setCurrentUser={updateCurrentUser}
+            setPage={setPage}
+          />
+        )}
         {page === "Login" && <LoginRoute setPage={setPage} setCurrentUser={handleCurrentUser} />}
         {page === "Register" && <RegisterRoute setPage={setPage} setCurrentUser={handleCurrentUser} />}
         {page === "Admin" && canAccessAdmin(currentUser) && <AdminRoute currentUser={currentUser} />}
