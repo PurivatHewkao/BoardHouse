@@ -29,6 +29,13 @@ function OrdersRoute({ currentUser }) {
                   <p className="mb-0 text-muted">
                     {order.date} &middot; {order.items}
                   </p>
+                  {order.trackingNumber && (
+                    <p className="mb-0 text-muted small mt-1">
+                      <i className="bi bi-truck me-1" />
+                      {order.carrier ? `${order.carrier} · ` : ""}
+                      เลขพัสดุ: {order.trackingNumber}
+                    </p>
+                  )}
                 </div>
                 <div className="d-flex align-items-center gap-3">
                   <strong className="fs-5 text-brand">{money(order.total)}</strong>
@@ -53,7 +60,7 @@ function OrdersRoute({ currentUser }) {
       </div>
 
       {selectedOrder && (
-        <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+        <OrderDetailModal key={selectedOrder.id} order={selectedOrder} onClose={() => setSelectedOrder(null)} />
       )}
     </section>
   );

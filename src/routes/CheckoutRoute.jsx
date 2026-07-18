@@ -1,19 +1,58 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { paymentMethods } from "../data/seedData.js";
 import { money } from "../utils/format.js";
 
-const emptyAddress = {
+const emptyNewAddress = {
   label: "Home",
+  recipientName: "",
+  phone: "",
   line1: "",
   district: "",
   province: "",
   postalCode: "",
 };
 
-function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage }) {
-  const [recipientName, setRecipientName] = useState(currentUser?.name || "");
-  const [phone, setPhone] = useState(currentUser?.phone || "");
-  const [address, setAddress] = useState({ ...emptyAddress, ...(currentUser?.address || {}) });
+// รวมที่อยู่ที่บันทึกไว้ของผู้ใช้ (addresses[]) และรองรับผู้ใช้เก่าที่มีแค่ address เดี่ยว (legacy)
+function getSavedAddresses(currentUser) {
+  if (!currentUser) {
+    return [];
+  }
+
+  if (Array.isArray(currentUser.addresses) && currentUser.addresses.length > 0) {
+    return currentUser.addresses;
+  }
+
+  if (currentUser.address) {
+    return [
+      {
+        id: "legacy",
+        label: currentUser.address.label || "Home",
+        recipientName: currentUser.name || "",
+        phone: currentUser.phone || "",
+        line1: currentUser.address.line1 || "",
+        district: currentUser.address.district || "",
+        province: currentUser.address.province || "",
+        postalCode: currentUser.address.postalCode || "",
+      },
+    ];
+  }
+
+  return [];
+}
+
+function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage, saveAddress }) {
+  const savedAddresses = useMemo(() => getSavedAddresses(currentUser), [currentUser]);
+
+  const [selectedAddressId, setSelectedAddressId] = useState(() =>
+    savedAddresses.length > 0 ? savedAddresses[0].id : "new"
+  );
+  const [newAddress, setNewAddress] = useState({
+    ...emptyNewAddress,
+    recipientName: currentUser?.name || "",
+    phone: currentUser?.phone || "",
+  });
+  const [saveNewAddress, setSaveNewAddress] = useState(true);
+
   const [paymentMethod, setPaymentMethod] = useState(paymentMethods[0]);
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
@@ -21,17 +60,33 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage }) {
   const [message, setMessage] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-  function updateAddress(field, value) {
-    setAddress((current) => ({ ...current, [field]: value }));
+  function updateNewAddress(field, value) {
+    setNewAddress((current) => ({ ...current, [field]: value }));
+  }
+
+  function getShippingAddress() {
+    if (selectedAddressId !== "new") {
+      return savedAddresses.find((addr) => addr.id === selectedAddressId) || null;
+    }
+    return { ...newAddress };
   }
 
   function validate() {
-    if (!recipientName.trim() || !phone.trim()) {
-      return "Please provide a recipient name and phone number.";
-    }
+    if (selectedAddressId === "new") {
+      if (!newAddress.recipientName.trim() || !newAddress.phone.trim()) {
+        return "Please provide a recipient name and phone number.";
+      }
 
-    if (!address.line1.trim() || !address.district.trim() || !address.province.trim() || !address.postalCode.trim()) {
-      return "Please complete the full shipping address.";
+      if (
+        !newAddress.line1.trim() ||
+        !newAddress.district.trim() ||
+        !newAddress.province.trim() ||
+        !newAddress.postalCode.trim()
+      ) {
+        return "Please complete the full shipping address.";
+      }
+    } else if (!getShippingAddress()) {
+      return "Please choose a shipping address.";
     }
 
     if (paymentMethod === "Credit Card") {
@@ -68,9 +123,15 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage }) {
     setMessage("");
     setIsPlacingOrder(true);
 
+    const shippingAddress = getShippingAddress();
+
+    if (selectedAddressId === "new" && saveNewAddress && typeof saveAddress === "function") {
+      saveAddress(newAddress);
+    }
+
     placeOrder({
       paymentMethod,
-      shippingAddress: { ...address, recipientName, phone },
+      shippingAddress,
     });
   }
 
@@ -84,69 +145,128 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage }) {
               <div className="card shadow-sm">
                 <div className="card-body p-4">
                   <h2 className="h4 mb-3">Shipping Address</h2>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label">
-                        Recipient Name
+
+                  {savedAddresses.length > 0 && (
+                    <div className="vstack gap-2 mb-3">
+                      {savedAddresses.map((addr) => (
+                        <label
+                          key={addr.id}
+                          className={`address-option ${selectedAddressId === addr.id ? "selected" : ""}`}
+                        >
+                          <input
+                            type="radio"
+                            name="shipping-address"
+                            checked={selectedAddressId === addr.id}
+                            onChange={() => setSelectedAddressId(addr.id)}
+                          />
+                          <span>
+                            <strong>{addr.label || "ที่อยู่จัดส่ง"}</strong>
+                            <br />
+                            <span className="text-muted small">
+                              {addr.recipientName} &middot; {addr.phone}
+                              <br />
+                              {[addr.line1, addr.district, addr.province, addr.postalCode]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                      <label className={`address-option ${selectedAddressId === "new" ? "selected" : ""}`}>
                         <input
-                          className="form-control mt-2"
-                          value={recipientName}
-                          onChange={(event) => setRecipientName(event.target.value)}
+                          type="radio"
+                          name="shipping-address"
+                          checked={selectedAddressId === "new"}
+                          onChange={() => setSelectedAddressId("new")}
                         />
+                        <span>
+                          <strong>+ ใช้ที่อยู่ใหม่</strong>
+                        </span>
                       </label>
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label">
-                        Phone Number
-                        <input
-                          className="form-control mt-2"
-                          value={phone}
-                          onChange={(event) => setPhone(event.target.value)}
-                        />
-                      </label>
+                  )}
+
+                  {selectedAddressId === "new" && (
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label">
+                          Recipient Name
+                          <input
+                            className="form-control mt-2"
+                            value={newAddress.recipientName}
+                            onChange={(event) => updateNewAddress("recipientName", event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label">
+                          Phone Number
+                          <input
+                            className="form-control mt-2"
+                            value={newAddress.phone}
+                            onChange={(event) => updateNewAddress("phone", event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <div className="col-12">
+                        <label className="form-label">
+                          Address
+                          <input
+                            className="form-control mt-2"
+                            placeholder="House no., Street"
+                            value={newAddress.line1}
+                            onChange={(event) => updateNewAddress("line1", event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label">
+                          District
+                          <input
+                            className="form-control mt-2"
+                            value={newAddress.district}
+                            onChange={(event) => updateNewAddress("district", event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label">
+                          Province
+                          <input
+                            className="form-control mt-2"
+                            value={newAddress.province}
+                            onChange={(event) => updateNewAddress("province", event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label">
+                          Postal Code
+                          <input
+                            className="form-control mt-2"
+                            value={newAddress.postalCode}
+                            onChange={(event) => updateNewAddress("postalCode", event.target.value)}
+                          />
+                        </label>
+                      </div>
+                      {currentUser && (
+                        <div className="col-12">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id="save-new-address"
+                              checked={saveNewAddress}
+                              onChange={(event) => setSaveNewAddress(event.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="save-new-address">
+                              บันทึกที่อยู่นี้ไว้ใช้ในครั้งถัดไป
+                            </label>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="col-12">
-                      <label className="form-label">
-                        Address
-                        <input
-                          className="form-control mt-2"
-                          placeholder="House no., Street"
-                          value={address.line1}
-                          onChange={(event) => updateAddress("line1", event.target.value)}
-                        />
-                      </label>
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">
-                        District
-                        <input
-                          className="form-control mt-2"
-                          value={address.district}
-                          onChange={(event) => updateAddress("district", event.target.value)}
-                        />
-                      </label>
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">
-                        Province
-                        <input
-                          className="form-control mt-2"
-                          value={address.province}
-                          onChange={(event) => updateAddress("province", event.target.value)}
-                        />
-                      </label>
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label">
-                        Postal Code
-                        <input
-                          className="form-control mt-2"
-                          value={address.postalCode}
-                          onChange={(event) => updateAddress("postalCode", event.target.value)}
-                        />
-                      </label>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

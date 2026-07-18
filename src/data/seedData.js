@@ -134,6 +134,19 @@ export const users = [
       province: "Bangkok",
       postalCode: "10200",
     },
+    // ที่อยู่ที่บันทึกไว้ (สามารถมีได้หลายรายการ เลือกได้ตอนจ่ายเงิน)
+    addresses: [
+      {
+        id: 1,
+        label: "Home",
+        recipientName: "Jane Doe",
+        phone: "081-234-5678",
+        line1: "99/1 BoardHouse Street",
+        district: "Bangkok",
+        province: "Bangkok",
+        postalCode: "10200",
+      },
+    ],
   },
   {
     id: 2,
@@ -143,6 +156,7 @@ export const users = [
     password: "admin123",
     phone: "080-000-0000",
     address: null,
+    addresses: [],
   },
 ];
 
