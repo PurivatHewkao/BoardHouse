@@ -45,7 +45,7 @@ export function registerUser({ name, email, password, phone = "", address = null
 
   const nextId = users.length ? Math.max(...users.map((user) => user.id)) + 1 : 1;
   // สมัครใหม่เป็น customer เสมอ — สิทธิ์ admin กำหนดจากฝั่งระบบเท่านั้น ยกระดับตัวเองไม่ได้
-  const user = { id: nextId, role: ROLES.CUSTOMER, name, email, password, phone, address };
+  const user = { id: nextId, role: ROLES.CUSTOMER, name, email, password, phone, address, addresses: [] };
   const nextUsers = [...users, user];
   saveUsers(nextUsers);
   setCurrentUser(user);
@@ -124,6 +124,27 @@ export function changePassword(actor, { currentPassword, nextPassword }) {
   return { ok: true, message: "Password changed.", user: updatedUser, users: nextUsers };
 }
 
+// บันทึกที่อยู่จัดส่งใหม่ลงในโปรไฟล์ผู้ใช้ (address book) เพื่อให้เลือกใช้ตอนจ่ายเงินได้ในครั้งถัดไป
+export function addAddressToUser(userId, address) {
+  const users = getUsers();
+  let savedUser = null;
+
+  const nextUsers = users.map((user) => {
+    if (user.id !== userId) {
+      return user;
+    }
+
+    const existingAddresses = Array.isArray(user.addresses) ? user.addresses : [];
+    const nextId = existingAddresses.length ? Math.max(...existingAddresses.map((item) => item.id)) + 1 : 1;
+    const nextAddress = { id: nextId, label: "Home", ...address };
+    savedUser = { ...user, addresses: [...existingAddresses, nextAddress] };
+    return savedUser;
+  });
+
+  saveUsers(nextUsers);
+
+  return savedUser;
+}
 export function getAdmins() {
   return getUsers().filter((user) => user.role === ROLES.ADMIN || isSuperAdmin(user));
 }

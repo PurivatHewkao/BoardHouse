@@ -1,12 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import { money } from "../utils/format.js";
 
-function OrderDetailModal({ order, customerName, onClose }) {
+const carrierOptions = [
+  "ไปรษณีย์ไทย (Thailand Post)",
+  "Kerry Express",
+  "Flash Express",
+  "J&T Express",
+  "DHL",
+  "อื่นๆ",
+];
+
+const emptyAddress = {
+  recipientName: "",
+  phone: "",
+  line1: "",
+  district: "",
+  province: "",
+  postalCode: "",
+};
+
+// ใช้ทั้งฝั่ง Admin (editable=true แก้ไขได้) และฝั่งลูกค้า (editable=false ดูอย่างเดียว)
+// สำคัญ: ให้ใส่ key={order.id} ตอนเรียกใช้คอมโพเนนต์นี้ เพื่อรีเซ็ต state เวลาเปลี่ยนออเดอร์
+function OrderDetailModal({ order, customerName, onClose, editable = false, onSave }) {
+  const [addressForm, setAddressForm] = useState({ ...emptyAddress, ...(order?.shippingAddress || {}) });
+  const [carrier, setCarrier] = useState(order?.carrier || carrierOptions[0]);
+  const [trackingNumber, setTrackingNumber] = useState(order?.trackingNumber || "");
+  const [savedMessage, setSavedMessage] = useState("");
+
   if (!order) {
     return null;
   }
 
-  const address = order.shippingAddress;
+  function updateAddressField(field, value) {
+    setAddressForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleSave() {
+    onSave?.({
+      shippingAddress: { ...addressForm },
+      trackingNumber: trackingNumber.trim(),
+      carrier: trackingNumber.trim() ? carrier : "",
+    });
+    setSavedMessage("บันทึกข้อมูลเรียบร้อยแล้ว");
+    window.setTimeout(() => setSavedMessage(""), 2500);
+  }
+
+  const displayAddress = editable ? addressForm : order.shippingAddress;
 
   return (
     <div className="order-modal-backdrop" onClick={onClose}>
@@ -67,27 +106,147 @@ function OrderDetailModal({ order, customerName, onClose }) {
             <strong className="text-brand">{money(order.total)}</strong>
           </div>
 
+          <h3 className="h6 text-muted text-uppercase mb-2">การจัดส่ง / เลขพัสดุ</h3>
+          {editable ? (
+            <div className="row g-3 mb-4">
+              <div className="col-md-6">
+                <label className="form-label">
+                  ผู้ให้บริการขนส่ง
+                  <select
+                    className="form-select mt-2"
+                    value={carrier}
+                    onChange={(event) => setCarrier(event.target.value)}
+                  >
+                    {carrierOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">
+                  เลขพัสดุ (Tracking Number)
+                  <input
+                    className="form-control mt-2"
+                    placeholder="เช่น TH1234567890"
+                    value={trackingNumber}
+                    onChange={(event) => setTrackingNumber(event.target.value)}
+                  />
+                </label>
+              </div>
+            </div>
+          ) : (
+            <>
+              {order.trackingNumber ? (
+                <div className="alert alert-light border mb-4 mb-md-4">
+                  <div>
+                    <strong>ผู้ให้บริการขนส่ง:</strong> {order.carrier || "-"}
+                  </div>
+                  <div>
+                    <strong>เลขพัสดุ:</strong> {order.trackingNumber}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted mb-4">ยังไม่มีข้อมูลเลขพัสดุ</p>
+              )}
+            </>
+          )}
+
           <h3 className="h6 text-muted text-uppercase mb-2">ที่อยู่จัดส่ง</h3>
-          {address ? (
+          {editable ? (
+            <div className="row g-3">
+              <div className="col-md-6">
+                <label className="form-label">
+                  ชื่อผู้รับ
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.recipientName}
+                    onChange={(event) => updateAddressField("recipientName", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">
+                  เบอร์โทร
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.phone}
+                    onChange={(event) => updateAddressField("phone", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="col-12">
+                <label className="form-label">
+                  ที่อยู่ (บ้านเลขที่, ถนน)
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.line1}
+                    onChange={(event) => updateAddressField("line1", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="col-md-4">
+                <label className="form-label">
+                  เขต/อำเภอ
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.district}
+                    onChange={(event) => updateAddressField("district", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="col-md-4">
+                <label className="form-label">
+                  จังหวัด
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.province}
+                    onChange={(event) => updateAddressField("province", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="col-md-4">
+                <label className="form-label">
+                  รหัสไปรษณีย์
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.postalCode}
+                    onChange={(event) => updateAddressField("postalCode", event.target.value)}
+                  />
+                </label>
+              </div>
+            </div>
+          ) : displayAddress ? (
             <p className="mb-0 text-muted">
-              {address.recipientName && (
+              {displayAddress.recipientName && (
                 <>
-                  {address.recipientName}
+                  {displayAddress.recipientName}
                   <br />
                 </>
               )}
-              {address.phone && (
+              {displayAddress.phone && (
                 <>
-                  {address.phone}
+                  {displayAddress.phone}
                   <br />
                 </>
               )}
-              {[address.line1, address.district, address.province, address.postalCode]
+              {[displayAddress.line1, displayAddress.district, displayAddress.province, displayAddress.postalCode]
                 .filter(Boolean)
                 .join(", ")}
             </p>
           ) : (
             <p className="mb-0 text-muted">ไม่มีข้อมูลที่อยู่จัดส่ง</p>
+          )}
+
+          {editable && (
+            <div className="d-flex align-items-center gap-3 mt-4 pt-3 border-top">
+              <button type="button" className="btn btn-boardhouse" onClick={handleSave}>
+                บันทึกการเปลี่ยนแปลง
+              </button>
+              {savedMessage && <span className="text-success small">{savedMessage}</span>}
+            </div>
           )}
         </div>
       </div>
