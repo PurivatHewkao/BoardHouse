@@ -17,7 +17,7 @@ import {
 } from "./utils/cartStorage.js";
 import { createOrder } from "./utils/orderStorage.js";
 import { getProducts, reduceProductStock, saveProducts } from "./utils/productStorage.js";
-import { getCurrentUser, logoutUser, setCurrentUser } from "./utils/userStorage.js";
+import { addAddressToUser, getCurrentUser, logoutUser, setCurrentUser } from "./utils/userStorage.js";
 import { canAccessAdmin } from "./utils/roles.js";
 
 function App() {
@@ -40,6 +40,22 @@ function App() {
     logoutUser();
     updateCurrentUser(null);
     setPage("Login");
+  }
+
+  // บันทึกที่อยู่จัดส่งใหม่ที่กรอกตอนจ่ายเงินลงในโปรไฟล์ผู้ใช้ เพื่อให้เลือกใช้ได้ในครั้งถัดไป
+  function saveAddressForUser(address) {
+    if (!currentUser) {
+      return null;
+    }
+
+    const updatedUser = addAddressToUser(currentUser.id, address);
+
+    if (updatedUser) {
+      updateCurrentUser(updatedUser);
+      setCurrentUser(updatedUser);
+    }
+
+    return updatedUser;
   }
 
   const cartItems = cart
@@ -132,6 +148,7 @@ function App() {
             currentUser={currentUser}
             placeOrder={placeOrder}
             setPage={setPage}
+            saveAddress={saveAddressForUser}
           />
         )}
         {page === "Orders" && <OrdersRoute currentUser={currentUser} />}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { getOrders, updateOrderStatus } from "../utils/orderStorage.js";
+import { getOrders, updateOrderStatus, updateOrderDetails } from "../utils/orderStorage.js";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../utils/productStorage.js";
 import {
   createAdmin,
@@ -322,6 +322,12 @@ function AdminRoute({ currentUser }) {
     setSelectedOrder((current) =>
       current && current.id === orderId ? { ...current, status, tone: status === "Completed" ? "primary" : "soft" } : current
     );
+  }
+
+  function handleOrderDetailsSave(orderId, updates) {
+    updateOrderDetails(orderId, updates);
+    refreshData();
+    setSelectedOrder((current) => (current && current.id === orderId ? { ...current, ...updates } : current));
   }
 
   const filteredOrders = orders.filter((order) => {
@@ -941,7 +947,15 @@ function AdminRoute({ currentUser }) {
                         <tbody>
                           {filteredOrders.map((order) => (
                             <tr key={order.id}>
-                              <td className="px-4 fw-semibold text-dark">{order.id}</td>
+                              <td className="px-4">
+                                <div className="fw-semibold text-dark">{order.id}</div>
+                                {order.trackingNumber && (
+                                  <div className="text-muted small">
+                                    <i className="bi bi-truck me-1" />
+                                    {order.trackingNumber}
+                                  </div>
+                                )}
+                              </td>
                               <td>{getCustomerName(order.userId)}</td>
                               <td className="text-muted">{order.date}</td>
                               <td className="text-muted">
@@ -1003,9 +1017,12 @@ function AdminRoute({ currentUser }) {
 
       {selectedOrder && (
         <OrderDetailModal
+          key={selectedOrder.id}
           order={selectedOrder}
           customerName={getCustomerName(selectedOrder.userId)}
           onClose={() => setSelectedOrder(null)}
+          editable
+          onSave={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
         />
       )}
     </section>
