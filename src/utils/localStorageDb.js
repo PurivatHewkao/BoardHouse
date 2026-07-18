@@ -1,4 +1,4 @@
-import { seedData, storageKeys } from "../data/seedData.js";
+import { seedData, seedVersion, storageKeys } from "../data/seedData.js";
 
 export { storageKeys };
 
@@ -20,13 +20,27 @@ export function writeStorage(key, value) {
   }
 }
 
+function clearAndStampVersion() {
+  Object.values(storageKeys).forEach((key) => localStorage.removeItem(key));
+  writeStorage(storageKeys.seedVersion, seedVersion);
+}
+
+function fillMissingKeys() {
+  Object.entries(seedData).forEach(([key, value]) => {
+    if (localStorage.getItem(key) === null) {
+      writeStorage(key, value);
+    }
+  });
+}
+
 export function seedStorage() {
   try {
-    Object.entries(seedData).forEach(([key, value]) => {
-      if (localStorage.getItem(key) === null) {
-        writeStorage(key, value);
-      }
-    });
+    // ของเก่าที่ค้างในเบราว์เซอร์คนละเวอร์ชันกับ seed ปัจจุบัน จะขาด user/role ที่เพิ่งเพิ่ม เลยต้องล้างก่อน
+    if (readStorage(storageKeys.seedVersion, 0) !== seedVersion) {
+      clearAndStampVersion();
+    }
+
+    fillMissingKeys();
   } catch {
     // Keep rendering even if localStorage is unavailable.
   }
@@ -34,8 +48,8 @@ export function seedStorage() {
 
 export function resetStorage() {
   try {
-    Object.values(storageKeys).forEach((key) => localStorage.removeItem(key));
-    seedStorage();
+    clearAndStampVersion();
+    fillMissingKeys();
   } catch {
     // Keep rendering even if localStorage is unavailable.
   }

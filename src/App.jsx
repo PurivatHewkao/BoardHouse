@@ -15,20 +15,16 @@ import {
   saveCart,
   updateCartQuantity,
 } from "./utils/cartStorage.js";
-import { seedStorage } from "./utils/localStorageDb.js";
 import { createOrder } from "./utils/orderStorage.js";
 import { getProducts, reduceProductStock, saveProducts } from "./utils/productStorage.js";
 import { addAddressToUser, getCurrentUser, logoutUser, setCurrentUser } from "./utils/userStorage.js";
+import { canAccessAdmin } from "./utils/roles.js";
 
 function App() {
   const [page, setPage] = useState("Home");
   const [products, setProducts] = useState(getProducts);
   const [cart, setCart] = useState(getInitialCart);
   const [currentUser, updateCurrentUser] = useState(getCurrentUser);
-
-  useEffect(() => {
-    seedStorage();
-  }, []);
 
   useEffect(() => {
     saveCart(cart);
@@ -125,6 +121,12 @@ function App() {
     }
   }, [page, cartItems.length]);
 
+  useEffect(() => {
+    if (page === "Admin" && !canAccessAdmin(currentUser)) {
+      setPage("Home");
+    }
+  }, [page, currentUser]);
+
   return (
     <div className="app-shell">
       <Header page={page} setPage={setPage} currentUser={currentUser} onLogout={handleLogout} />
@@ -152,7 +154,7 @@ function App() {
         {page === "Orders" && <OrdersRoute currentUser={currentUser} />}
         {page === "Login" && <LoginRoute setPage={setPage} setCurrentUser={handleCurrentUser} />}
         {page === "Register" && <RegisterRoute setPage={setPage} setCurrentUser={handleCurrentUser} />}
-        {page === "Admin" && <AdminRoute />}
+        {page === "Admin" && canAccessAdmin(currentUser) && <AdminRoute currentUser={currentUser} />}
       </main>
       <Footer />
     </div>

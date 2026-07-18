@@ -1,0 +1,247 @@
+[
+  {
+    "id": 13,
+    "name": "Catan",
+    "file": "/images/boardgames/catan.png",
+    "source": "https://boardgamegeek.com/boardgame/13",
+    "imageSource": "https://www.catan.com/sites/default/files/2025-01/CATAN_6eBaseGame_Base_Frontview.png"
+  },
+  {
+    "id": 9209,
+    "name": "Ticket to Ride",
+    "file": "/images/boardgames/ticket-to-ride.png",
+    "source": "https://boardgamegeek.com/boardgame/9209",
+    "imageSource": "https://cdn.mobygames.com/covers/18267602-ticket-to-ride-the-board-game-iphone-front-cover.png"
+  },
+  {
+    "id": 178900,
+    "name": "Codenames",
+    "file": "/images/boardgames/codenames.jpg",
+    "source": "https://boardgamegeek.com/boardgame/178900",
+    "imageSource": "http://www.geekyhobbies.com/wp-content/uploads/2017/11/Codenames-Box.jpg"
+  },
+  {
+    "id": 266192,
+    "name": "Wingspan",
+    "file": "/images/boardgames/wingspan.png",
+    "source": "https://boardgamegeek.com/boardgame/266192",
+    "imageSource": "https://www.boardgamesindia.com/image/cache/catalog/product/wingspan-nesting-box-1000x1000w.png"
+  },
+  {
+    "id": 2223,
+    "name": "Uno",
+    "file": "/images/boardgames/uno.webp",
+    "source": "https://boardgamegeek.com/boardgame/2223",
+    "imageSource": "https://ae01.alicdn.com/kf/Sce2e7aa37aad485593340aa32390c26dG/Mattel-UNO-Tin-Box-Classic-style-Games-Family-Funny-Entertainment-Board-Game-Fun-Playing-Cards-Kids.jpg"
+  },
+  {
+    "id": 230802,
+    "name": "Azul",
+    "file": "/images/boardgames/azul.jpg",
+    "source": "https://boardgamegeek.com/boardgame/230802",
+    "imageSource": "https://assets.dicebreaker.com/azul-beginner-board-game-box.jpg/BROK/resize/1920x1920&gt;/format/jpg/quality/80/azul-beginner-board-game-box.jpg"
+  },
+  {
+    "id": 39856,
+    "name": "Dixit",
+    "file": "/images/boardgames/dixit.jpg",
+    "source": "https://boardgamegeek.com/boardgame/39856",
+    "imageSource": "https://cf.geekdo-images.com/J0PlHArkZDJ57H-brXW2Fw__original/img/jt3kFCHJ3HJ2079dMLwipFZqdQg=/0x0/filters:format(jpeg)/pic6738336.jpg"
+  },
+  {
+    "id": 68448,
+    "name": "7 Wonders",
+    "file": "/images/boardgames/7-wonders.jpg",
+    "source": "https://boardgamegeek.com/boardgame/68448",
+    "imageSource": "https://theboardgamesite.com/wp-content/uploads/2024/05/7-Wonders-1019x1024.jpg"
+  },
+  {
+    "id": 925,
+    "name": "Werewolf",
+    "file": "/images/boardgames/werewolf.png",
+    "source": "https://boardgamegeek.com/boardgame/925",
+    "imageSource": "https://cf.geekdo-images.com/opengraph_letterbox/img/3xX4BY_aohlL1jR6PpSjN9xNtnc=/fit-in/1200x630/filters:fill(auto)/pic1878492.png"
+  },
+  {
+    "id": 30549,
+    "name": "Pandemic",
+    "file": "/images/boardgames/pandemic.png",
+    "source": "https://boardgamegeek.com/boardgame/30549",
+    "imageSource": "https://cdn.svc.asmodee.net/production-asmodeeit/uploads/2022/09/pandemic-box.png"
+  },
+  {
+    "id": 148228,
+    "name": "Splendor",
+    "file": "/images/boardgames/splendor.jpg",
+    "source": "https://boardgamegeek.com/boardgame/148228",
+    "imageSource": "https://m.media-amazon.com/images/I/71-H11a+R2L._SL1500_.jpg"
+  },
+  {
+    "id": 822,
+    "name": "Carcassonne",
+    "file": "/images/boardgames/carcassonne.jpg",
+    "source": "https://boardgamegeek.com/boardgame/822",
+    "imageSource": "https://store.asmodee.com/cdn/shop/products/ZM7810-1_535x.jpg?v=1690217588"
+  },
+  {
+    "id": 128882,
+    "name": "The Resistance: Avalon",
+    "file": "/images/boardgames/the-resistance-avalon.jpg",
+    "source": "https://boardgamegeek.com/boardgame/128882",
+    "imageSource": "https://static1.thegamerimages.com/wordpress/wp-content/uploads/2021/05/Avalon-The-Resistance-Board-game-box-Tokens-on-the-board-Mordred-and-Merlin-cards.jpg"
+  },
+  {
+    "id": 172225,
+    "name": "Exploding Kittens",
+    "file": "/images/boardgames/exploding-kittens.png",
+    "source": "https://boardgamegeek.com/boardgame/172225",
+    "imageSource": "http://magicomens.com/cdn/shop/products/exploding-kittens-board-game-original-edition.webp?v=1668161667"
+  },
+  {
+    "id": 133473,
+    "name": "Sushi Go!",
+    "file": "/images/boardgames/sushi-go.jpg",
+    "source": "https://boardgamegeek.com/boardgame/133473",
+    "imageSource": "https://cf.geekdo-images.com/RrnjxzPnat69yC0pidKIsg__imagepage/img/XvZXaPeBa6Yitk12S0xwypGcD3M=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4448071.jpg"
+  },
+  {
+    "id": 181304,
+    "name": "Mysterium",
+    "file": "/images/boardgames/mysterium.jpg",
+    "source": "https://boardgamegeek.com/boardgame/181304",
+    "imageSource": "http://ustudio.shop/cdn/shop/products/Mysterium-Boardgame-Liebellud-Games-Box-Design.jpg?v=1668610902"
+  },
+  {
+    "id": 65244,
+    "name": "Forbidden Island",
+    "file": "/images/boardgames/forbidden-island.jpg",
+    "source": "https://boardgamegeek.com/boardgame/65244",
+    "imageSource": "https://m.media-amazon.com/images/I/81dLQJZRx5L._AC_SL1500_.jpg"
+  },
+  {
+    "id": 254640,
+    "name": "Just One",
+    "file": "/images/boardgames/just-one.jpg",
+    "source": "https://boardgamegeek.com/boardgame/254640",
+    "imageSource": "https://www.boardgamemadness.ph/cdn/shop/products/JustOne1.jpg?v=1651850677"
+  },
+  {
+    "id": 129622,
+    "name": "Love Letter",
+    "file": "/images/boardgames/love-letter.webp",
+    "source": "https://boardgamegeek.com/boardgame/129622",
+    "imageSource": "https://cdn.svc.asmodee.net/production-asmodeeit/uploads/image-converter/2022/09/love_letter_ECO_box.webp"
+  },
+  {
+    "id": 98778,
+    "name": "Hanabi",
+    "file": "/images/boardgames/hanabi.jpg",
+    "source": "https://boardgamegeek.com/boardgame/98778",
+    "imageSource": "https://www.boardgamequest.com/wp-content/uploads/2014/02/hanabi_box.jpg"
+  },
+  {
+    "id": 54043,
+    "name": "Jaipur",
+    "file": "/images/boardgames/jaipur.jpg",
+    "source": "https://boardgamegeek.com/boardgame/54043",
+    "imageSource": "https://cdn.svc.asmodee.net/production-asmodeenordics/uploads/2022/01/Jaipur_Scandic_Box_Content-1066x800.jpg"
+  },
+  {
+    "id": 131357,
+    "name": "Coup",
+    "file": "/images/boardgames/coup.jpg",
+    "source": "https://boardgamegeek.com/boardgame/131357",
+    "imageSource": "https://i0.wp.com/www.teamboardgame.com/wp-content/uploads/2021/05/Coup-Full-Cover.jpg?w=800&ssl=1"
+  },
+  {
+    "id": 225694,
+    "name": "Decrypto",
+    "file": "/images/boardgames/decrypto.png",
+    "source": "https://boardgamegeek.com/boardgame/225694",
+    "imageSource": "https://cdn.svc.asmodee.net/production-asmodeeit/uploads/2022/09/decrypto-box.png"
+  },
+  {
+    "id": 204583,
+    "name": "Kingdomino",
+    "file": "/images/boardgames/kingdomino.webp",
+    "source": "https://boardgamegeek.com/boardgame/204583",
+    "imageSource": "https://boardgamewikia.com/blog/wp-content/uploads/2023/01/kingdomino-board-game-front-cover.webp"
+  },
+  {
+    "id": 218603,
+    "name": "Photosynthesis",
+    "file": "/images/boardgames/photosynthesis.webp",
+    "source": "https://boardgamegeek.com/boardgame/218603",
+    "imageSource": "https://boardgamewikia.com/blog/wp-content/uploads/2023/04/photosynthesis-board-game-box.webp"
+  },
+  {
+    "id": 10547,
+    "name": "Betrayal at House on the Hill",
+    "file": "/images/boardgames/betrayal-at-house-on-the-hill.jpg",
+    "source": "https://boardgamegeek.com/boardgame/10547",
+    "imageSource": "https://m.media-amazon.com/images/I/81rR1fZXQRL._AC_SL1500_.jpg"
+  },
+  {
+    "id": 244992,
+    "name": "The Mind",
+    "file": "/images/boardgames/the-mind.jpg",
+    "source": "https://boardgamegeek.com/boardgame/244992",
+    "imageSource": "https://www.littlekrakenboardgame.com/wp-content/uploads/2019/05/the_mind.jpg"
+  },
+  {
+    "id": 163412,
+    "name": "Patchwork",
+    "file": "/images/boardgames/patchwork.png",
+    "source": "https://boardgamegeek.com/boardgame/163412",
+    "imageSource": "https://www.boardgamesindia.com/image/cache/catalog/product/Published/patchwork-Front-500x500.png"
+  },
+  {
+    "id": 46213,
+    "name": "Telestrations",
+    "file": "/images/boardgames/telestrations.jpg",
+    "source": "https://boardgamegeek.com/boardgame/46213",
+    "imageSource": "https://www.myshopville.com/cdn/shop/products/telestrations_12_player_party_pack_board_game_box_cover_1200x1200.jpg?v=1620221066"
+  },
+  {
+    "id": 166384,
+    "name": "Spyfall",
+    "file": "/images/boardgames/spyfall.jpg",
+    "source": "https://boardgamegeek.com/boardgame/166384",
+    "imageSource": "https://images.thenile.io/r1000/0815442019042.jpg"
+  },
+  {
+    "id": 3955,
+    "name": "Bang!",
+    "file": "/images/boardgames/bang.png",
+    "source": "https://boardgamegeek.com/boardgame/3955",
+    "imageSource": "https://3dlevelup.com.au/cdn/shop/files/Bang-board-game-cover.png?v=1713165941&width=1946"
+  },
+  {
+    "id": 153938,
+    "name": "Camel Up",
+    "file": "/images/boardgames/camel-up.jpg",
+    "source": "https://boardgamegeek.com/boardgame/153938",
+    "imageSource": "https://meepleandsheep.ca/wp-content/uploads/2018/12/Camel-Up-Box-Cover-Board-Game-min-510x510.jpg"
+  },
+  {
+    "id": 70919,
+    "name": "Takenoko",
+    "file": "/images/boardgames/takenoko.jpg",
+    "source": "https://boardgamegeek.com/boardgame/70919",
+    "imageSource": "https://www.boardgamequest.com/wp-content/uploads/2013/04/Takenoko-Box-Cover.jpg"
+  },
+  {
+    "id": 316554,
+    "name": "Dune: Imperium",
+    "file": "/images/boardgames/dune-imperium.png",
+    "source": "https://boardgamegeek.com/boardgame/316554",
+    "imageSource": "https://cdn.svc.asmodee.net/production-asmodeeit/uploads/2022/09/Dune-Imperium-BOX-1024x1024.png"
+  },
+  {
+    "id": 237182,
+    "name": "Root",
+    "file": "/images/boardgames/root.jpg",
+    "source": "https://boardgamegeek.com/boardgame/237182",
+    "imageSource": "https://assets.dicebreaker.com/root-board-game-box.jpg/BROK/resize/1920x1920&gt;/format/jpg/quality/80/root-board-game-box.jpg"
+  }
+]
