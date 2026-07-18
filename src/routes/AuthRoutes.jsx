@@ -1,12 +1,27 @@
 import React, { useState } from "react";
 import { loginUser, registerUser } from "../utils/userStorage.js";
-import { isAdmin } from "../utils/roles.js";
+import { getAccessLabel, isAdmin } from "../utils/roles.js";
 import { resetStorage } from "../utils/localStorageDb.js";
+import { users as seedUsers } from "../data/seedData.js";
+
+// ดึงบัญชีเดโมจาก seed data ตรงๆ เวลามีคนแก้อีเมล/รหัสใน seedData.js หน้านี้จะตามให้เอง
+const demoAccounts = seedUsers.map((user) => ({
+  role: user.role,
+  label: getAccessLabel(user),
+  email: user.email,
+  password: user.password,
+}));
 
 export function LoginRoute({ setPage, setCurrentUser }) {
   const [email, setEmail] = useState("jane@example.com");
   const [password, setPassword] = useState("password");
   const [message, setMessage] = useState("");
+
+  function handleFillDemoAccount(account) {
+    setEmail(account.email);
+    setPassword(account.password);
+    setMessage(`Filled in the ${account.label} account. Press Login to continue.`);
+  }
 
   function handleLogin() {
     const user = loginUser(email, password);
@@ -40,6 +55,22 @@ export function LoginRoute({ setPage, setCurrentUser }) {
         </button>
       }
     >
+      <div className="demo-accounts vstack gap-2">
+        <p className="mb-0 small fw-semibold text-muted">Demo accounts (click to fill in)</p>
+        {demoAccounts.map((account) => (
+          <button
+            key={account.role}
+            className="btn btn-outline-secondary btn-sm text-start"
+            type="button"
+            onClick={() => handleFillDemoAccount(account)}
+          >
+            <span className="fw-semibold">{account.label}</span>
+            <span className="d-block small opacity-75">
+              {account.email} / {account.password}
+            </span>
+          </button>
+        ))}
+      </div>
       <label className="form-label">
         Email or Username
         <input
