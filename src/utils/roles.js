@@ -6,7 +6,7 @@ export const ROLES = {
 
 export const ADMIN_NAV = "Admin";
 
-const CUSTOMER_NAV = ["Home", "Cart", "Orders"];
+const CUSTOMER_NAV = ["Home", "Cart", "Orders", "Profile"];
 
 const ACCESS_LABELS = {
   [ROLES.CUSTOMER]: "Customer",

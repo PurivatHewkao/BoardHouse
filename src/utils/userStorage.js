@@ -53,6 +53,77 @@ export function registerUser({ name, email, password, phone = "", address = null
   return { ok: true, message: "Registered successfully.", user, users: nextUsers };
 }
 
+// แก้โปรไฟล์ตัวเอง (C02) — แก้ได้เฉพาะบัญชีที่ล็อกอินอยู่เท่านั้น
+// role/id เปลี่ยนจากตรงนี้ไม่ได้ ต่อให้ส่ง field พวกนั้นมาก็โดนทิ้ง
+export function updateProfile(actor, { name, email, phone = "", address = null }) {
+  const users = getUsers();
+
+  if (!actor) {
+    return { ok: false, message: "Please log in first.", users };
+  }
+
+  const current = users.find((user) => user.id === actor.id);
+
+  if (!current) {
+    return { ok: false, message: "User not found.", users };
+  }
+
+  if (!name?.trim() || !email?.trim()) {
+    return { ok: false, message: "Name and email are required.", users };
+  }
+
+  const duplicatedEmail = users.some(
+    (user) => user.id !== current.id && user.email.toLowerCase() === email.trim().toLowerCase()
+  );
+
+  if (duplicatedEmail) {
+    return { ok: false, message: "Email is already registered.", users };
+  }
+
+  const updatedUser = {
+    ...current,
+    name: name.trim(),
+    email: email.trim(),
+    phone: phone.trim(),
+    address: address ? { ...address } : null,
+  };
+  const nextUsers = users.map((user) => (user.id === current.id ? updatedUser : user));
+  saveUsers(nextUsers);
+  setCurrentUser(updatedUser);
+
+  return { ok: true, message: "Profile updated.", user: updatedUser, users: nextUsers };
+}
+
+// เปลี่ยนรหัสผ่านตัวเอง ต้องยืนยันรหัสเดิมก่อนเสมอ
+export function changePassword(actor, { currentPassword, nextPassword }) {
+  const users = getUsers();
+
+  if (!actor) {
+    return { ok: false, message: "Please log in first.", users };
+  }
+
+  const current = users.find((user) => user.id === actor.id);
+
+  if (!current) {
+    return { ok: false, message: "User not found.", users };
+  }
+
+  if (current.password !== currentPassword) {
+    return { ok: false, message: "Your current password is incorrect.", users };
+  }
+
+  if (!nextPassword || nextPassword.length < 6) {
+    return { ok: false, message: "New password must be at least 6 characters.", users };
+  }
+
+  const updatedUser = { ...current, password: nextPassword };
+  const nextUsers = users.map((user) => (user.id === current.id ? updatedUser : user));
+  saveUsers(nextUsers);
+  setCurrentUser(updatedUser);
+
+  return { ok: true, message: "Password changed.", user: updatedUser, users: nextUsers };
+}
+
 // บันทึกที่อยู่จัดส่งใหม่ลงในโปรไฟล์ผู้ใช้ (address book) เพื่อให้เลือกใช้ตอนจ่ายเงินได้ในครั้งถัดไป
 export function addAddressToUser(userId, address) {
   const users = getUsers();
