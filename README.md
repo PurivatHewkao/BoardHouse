@@ -406,7 +406,7 @@ sequenceDiagram
 
 ---
 
-## Design ออกแบบ
+## Development
 
 ## System Structure
 
@@ -476,27 +476,8 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 
 ---
 
-## Development
 
-### การพัฒนาระบบ
-
-#### Frontend
-
-#### Backend
-
-#### Database
-
-ไม่มี
-
-#### API
-
-ไม่มี
-
----
-
-## Testing
-
-### Testing Approach
+## Testing Approach
 
 ### Test Case
 
@@ -508,8 +489,8 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 
 ใช้ JMeter ดูก่อน
 
-### User Acceptance
-
+### User Acceptance 
+https://quilled-edge-054.notion.site/3a1dadaf37a28069a987e5e7becfb3ff?v=3a1dadaf37a2807aadf7000c32cf3915 </br>
 | ลำดับ | ชื่อ-นามสกุล            | กลุ่ม | รหัสนักศึกษา | ลิ้งค์ |
 | ----- | ----------------------- | ----- | ------------ | ----- |
 | 1     | Overall Team's UAT |  |  | [UAT Result](https://app.notion.com/p/3a1dadaf37a28027bfbdcb58b847b5cf?v=514dadaf37a2823b85b188e55ac23683&source=copy_link) |
