@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { money } from "../utils/format.js";
+import { money, summarizeOrderItems } from "../utils/format.js";
 import { getOrders } from "../utils/orderStorage.js";
 import { isAdmin } from "../utils/roles.js";
 import OrderDetailModal from "../components/OrderDetailModal.jsx";
@@ -26,9 +26,9 @@ function OrdersRoute({ currentUser }) {
             <article className="card shadow-sm" key={order.id}>
               <div className="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
                 <div>
-                  <h2 className="h4 mb-1">{order.id}</h2>
+                  <h2 className="h4 mb-1">{summarizeOrderItems(order)}</h2>
                   <p className="mb-0 text-muted">
-                    {order.date} &middot; {order.items}
+                    {order.date} &middot; {order.id}
                   </p>
                   {order.trackingNumber && (
                     <p className="mb-0 text-muted small mt-1">
