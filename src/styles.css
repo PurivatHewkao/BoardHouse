@@ -538,3 +538,7 @@ main {
   border-color: var(--bh-brand);
   background: var(--bh-soft);
 }
+.status.danger {
+  background: #f8d7da;
+  color: #842029;
+}

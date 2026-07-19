@@ -2,7 +2,7 @@ import { orders as defaultOrders } from "../data/seedData.js";
 import { readStorage, storageKeys, writeStorage } from "./localStorageDb.js";
 
 // ลำดับสถานะที่ไหลอัตโนมัติได้ตามเวลา (ไม่รวม Cancelled เพราะต้องยกเลิกโดยแอดมินเท่านั้น)
-export const orderStatusFlow = ["Paid", "Preparing Shipment", "In Transit", "Completed"];
+export const orderStatusFlow = ["Preparing Shipment", "In Transit", "Completed"];
 
 // ⏱️ เวลาต่อ 1 สถานะ (จำลองสั้นๆ เพื่อ demo) — ปรับตัวเลขนี้ได้ตามต้องการ
 export const AUTO_ADVANCE_STAGE_MS = 60 * 1000; // 1 นาที/สถานะ
@@ -44,8 +44,9 @@ export function createOrder({ user, cartItems, paymentMethod = "Cash on Delivery
     items: orderItems.map((item) => item.name).join(", "),
     orderItems,
     total,
-    status: "Paid",
-    tone: "primary",
+    // ลูกค้าจ่ายเงินตอน checkout เสร็จแล้ว ให้เริ่มที่ "Preparing Shipment" เลย (ข้ามสถานะ Paid)
+    status: "Preparing Shipment",
+    tone: "soft",
     paymentMethod,
     shippingAddress: shippingAddress || user?.address || null,
     createdAt: now,
@@ -80,8 +81,8 @@ export function updateOrderStatus(orderId, status) {
   return nextOrders;
 }
 
-// ยกเลิกออเดอร์ — ต้องระบุเหตุผลเสมอ
-export function cancelOrder(orderId, reason) {
+// ยกเลิกออเดอร์ — ต้องระบุเหตุผลเสมอ และบันทึกไว้ด้วยว่าแอดมินคนไหนเป็นคนยกเลิก
+export function cancelOrder(orderId, reason, admin) {
   const nextOrders = getOrders().map((order) =>
     order.id === orderId
       ? {
@@ -89,6 +90,7 @@ export function cancelOrder(orderId, reason) {
           status: "Cancelled",
           tone: "danger",
           cancelReason: reason,
+          cancelledBy: admin?.name || admin?.email || "ไม่ทราบผู้ดำเนินการ",
           statusUpdatedAt: Date.now(),
         }
       : order
