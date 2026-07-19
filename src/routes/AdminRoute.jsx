@@ -9,7 +9,7 @@ import {
   promoteToAdmin,
 } from "../utils/userStorage.js";
 import { canManageAdmins, isCustomer, isSuperAdmin, ROLES } from "../utils/roles.js";
-import { money } from "../utils/format.js";
+import { money, summarizeOrderItems } from "../utils/format.js";
 import { resetStorage } from "../utils/localStorageDb.js";
 // 💡 ดึงประเภทหมวดหมู่เดียวกับหน้าโฮมมาใช้ (ถ้าดึงจากไฟล์นี้ไม่ได้ ให้เปลี่ยนพาธให้ตรงกับโปรเจกต์หนูนะคะ)
 import { categories } from "../data/products.js";
@@ -959,8 +959,8 @@ function AdminRoute({ currentUser }) {
                               <td>{getCustomerName(order.userId)}</td>
                               <td className="text-muted">{order.date}</td>
                               <td className="text-muted">
-                                <span className="text-truncate d-block" style={{ maxWidth: "220px" }}>
-                                  {order.items}
+                                <span className="d-block" style={{ maxWidth: "220px", whiteSpace: "normal" }}>
+                                  {summarizeOrderItems(order)}
                                 </span>
                               </td>
                               <td className="text-brand fw-semibold">{money(order.total)}</td>
