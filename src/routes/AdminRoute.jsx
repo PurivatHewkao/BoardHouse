@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { getOrders, updateOrderStatus, updateOrderDetails } from "../utils/orderStorage.js";
+import { getOrders, updateOrderStatus, updateOrderDetails, cancelOrder } from "../utils/orderStorage.js";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../utils/productStorage.js";
 import {
   createAdmin,
@@ -48,6 +48,9 @@ function AdminRoute({ currentUser }) {
   // State สำหรับหน้า Orders (ดูรายละเอียด + เปลี่ยนสถานะ order)
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderSearch, setOrderSearch] = useState("");
+  const [cancelTargetId, setCancelTargetId] = useState(null);
+  const [cancelReasonInput, setCancelReasonInput] = useState("");
+  const [cancelError, setCancelError] = useState("");
 
   // 🔎 ช่องค้นหาในหน้ารายชื่อลูกค้า
   const [customerSearch, setCustomerSearch] = useState("");
@@ -312,11 +315,6 @@ function AdminRoute({ currentUser }) {
   }
 
   function handleOrderStatusChange(orderId, status) {
-    const target = orders.find((order) => order.id === orderId);
-    if (target && target.status === "Completed") {
-      // ออเดอร์ที่ Completed แล้วห้ามแก้ไขสถานะอีก
-      return;
-    }
     updateOrderStatus(orderId, status);
     refreshData();
     setSelectedOrder((current) =>
@@ -324,11 +322,50 @@ function AdminRoute({ currentUser }) {
     );
   }
 
+  // ยกเลิกออเดอร์ — เปิดฟอร์มให้กรอกเหตุผล (แทนการใช้ prompt) และบันทึกด้วยว่าแอดมินคนไหนเป็นคนยกเลิก
+  function openCancelModal(orderId) {
+    setCancelTargetId(orderId);
+    setCancelReasonInput("");
+    setCancelError("");
+  }
+
+  function closeCancelModal() {
+    setCancelTargetId(null);
+    setCancelReasonInput("");
+    setCancelError("");
+  }
+
+  function handleConfirmCancel() {
+    const trimmedReason = cancelReasonInput.trim();
+    if (!trimmedReason) {
+      setCancelError("กรุณาระบุเหตุผลก่อนยกเลิกออเดอร์ค่ะ");
+      return;
+    }
+    cancelOrder(cancelTargetId, trimmedReason, currentUser);
+    refreshData();
+    setSelectedOrder((current) =>
+      current && current.id === cancelTargetId
+        ? {
+            ...current,
+            status: "Cancelled",
+            tone: "danger",
+            cancelReason: trimmedReason,
+            cancelledBy: currentUser?.name || currentUser?.email || "ไม่ทราบผู้ดำเนินการ",
+          }
+        : current
+    );
+    closeCancelModal();
+  }
+
   function handleOrderDetailsSave(orderId, updates) {
     updateOrderDetails(orderId, updates);
     refreshData();
     setSelectedOrder((current) => (current && current.id === orderId ? { ...current, ...updates } : current));
   }
+
+  // ตัวเลือกสถานะที่แอดมินเลือกเองได้ผ่าน dropdown — ตัด "Paid" ออก (เป็นสถานะเริ่มต้นอัตโนมัติ ไม่ให้เลือกย้อนกลับ)
+  // และตัด "Cancelled" ออก (ย้ายไปเป็นปุ่มแยกที่ต้องใส่เหตุผล)
+  const editableStatuses = orderStatuses.filter((status) => status !== "Paid" && status !== "Cancelled");
 
   const filteredOrders = orders.filter((order) => {
     const query = orderSearch.trim().toLowerCase();
@@ -965,24 +1002,43 @@ function AdminRoute({ currentUser }) {
                               </td>
                               <td className="text-brand fw-semibold">{money(order.total)}</td>
                               <td>
-                                {order.status === "Completed" ? (
-                                  <span className="badge rounded-pill status primary">
-                                    <i className="bi bi-lock-fill me-1" />
-                                    {order.status}
-                                  </span>
+                                {order.status === "Cancelled" ? (
+                                  <div>
+                                    <span className="badge rounded-pill status danger">
+                                      <i className="bi bi-x-circle-fill me-1" />
+                                      Cancelled
+                                    </span>
+                                    {order.cancelReason && (
+                                      <div className="text-muted small mt-1">เหตุผล: {order.cancelReason}</div>
+                                    )}
+                                    {order.cancelledBy && (
+                                      <div className="text-muted small">โดย: {order.cancelledBy}</div>
+                                    )}
+                                  </div>
                                 ) : (
-                                  <select
-                                    className="form-select form-select-sm"
-                                    style={{ minWidth: "160px" }}
-                                    value={order.status}
-                                    onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
-                                  >
-                                    {orderStatuses.map((status) => (
-                                      <option key={status} value={status}>
-                                        {status}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div className="d-flex flex-column gap-2">
+                                    <select
+                                      className="form-select form-select-sm"
+                                      style={{ minWidth: "170px" }}
+                                      value={order.status}
+                                      onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                                    >
+                                      {(order.status === "Paid" ? ["Paid", ...editableStatuses] : editableStatuses).map(
+                                        (status) => (
+                                          <option key={status} value={status}>
+                                            {status}
+                                          </option>
+                                        )
+                                      )}
+                                    </select>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-danger"
+                                      onClick={() => openCancelModal(order.id)}
+                                    >
+                                      ยกเลิกออเดอร์
+                                    </button>
+                                  </div>
                                 )}
                               </td>
                               <td className="px-4 text-end">
@@ -1024,6 +1080,46 @@ function AdminRoute({ currentUser }) {
           editable
           onSave={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
         />
+      )}
+
+      {cancelTargetId && (
+        <div className="order-modal-backdrop" onClick={closeCancelModal}>
+          <div
+            className="card shadow order-modal-dialog"
+            style={{ maxWidth: "480px" }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="card-body p-4">
+              <div className="d-flex justify-content-between align-items-start mb-3">
+                <h2 className="h5 mb-0">ยกเลิกออเดอร์ {cancelTargetId}</h2>
+                <button type="button" className="btn-close" aria-label="Close" onClick={closeCancelModal} />
+              </div>
+              <label className="form-label" htmlFor="cancel-reason-input">
+                เหตุผลในการยกเลิก
+              </label>
+              <textarea
+                id="cancel-reason-input"
+                className="form-control mb-2"
+                rows={4}
+                placeholder="เช่น ลูกค้าขอยกเลิก, สินค้าหมดสต๊อก ฯลฯ"
+                value={cancelReasonInput}
+                onChange={(event) => setCancelReasonInput(event.target.value)}
+              />
+              {cancelError && <p className="text-danger small mb-3">{cancelError}</p>}
+              <p className="text-muted small mb-3">
+                ดำเนินการโดย: <strong>{currentUser?.name || currentUser?.email || "ไม่ทราบผู้ดำเนินการ"}</strong>
+              </p>
+              <div className="d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-outline-secondary" onClick={closeCancelModal}>
+                  ปิด
+                </button>
+                <button type="button" className="btn btn-danger" onClick={handleConfirmCancel}>
+                  ยืนยันยกเลิกออเดอร์
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

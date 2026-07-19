@@ -70,6 +70,19 @@ function OrderDetailModal({ order, customerName, onClose, editable = false, onSa
             )}
           </div>
 
+          {order.status === "Cancelled" && (
+            <div className="alert alert-danger mb-3">
+              <div>
+                <strong>เหตุผลที่ยกเลิก:</strong> {order.cancelReason || "ไม่ได้ระบุเหตุผล"}
+              </div>
+              {order.cancelledBy && (
+                <div>
+                  <strong>ยกเลิกโดย:</strong> {order.cancelledBy}
+                </div>
+              )}
+            </div>
+          )}
+
           <h3 className="h6 text-muted text-uppercase mb-2">รายการสินค้า</h3>
           <div className="table-responsive mb-3">
             <table className="table table-sm align-middle mb-0">
