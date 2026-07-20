@@ -472,16 +472,20 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 
 ![Admin Wireframe](docs/images/uxui-admin-wireframe.png)
 
-### เหตุผลที่เลือก
-
 ---
 
 
 ## Testing Approach
 
-### Test Case
-
 ### Function Testing
+https://quilled-edge-054.notion.site/3a3dadaf37a28079ac5df91952911184?v=a57dadaf37a2832fac5f88ef334e57c4&source=copy_link </br>
+| ลำดับ | ชื่อ-นามสกุล            | กลุ่ม | รหัสนักศึกษา | ลิ้งค์ |
+| ----- | ----------------------- | ----- | ------------ | ----- |
+| 1     | Overall Team's UAT |  |  | [FT Result](https://app.notion.com/p/3a1dadaf37a28027bfbdcb58b847b5cf?v=514dadaf37a2823b85b188e55ac23683&source=copy_link) |
+| 2     | ภูริวัชร์ จินดาพงษ์ศิริ | T003  | 67182803     | [FT Purivat](https://app.notion.com/p/3a2dadaf37a2809aa6e6e43f927bc880?v=ea3dadaf37a283cd90cc085a4300fed9) |
+| 3     | ภานุกร แสงมณี           | T001  | 67161002     | [FT Phanukon](https://quilled-edge-054.notion.site/3a2dadaf37a280c89ae1d139a73fbdcd?v=62cdadaf37a282c694e00899daed109e&source=copy_link) |
+| 4     | บุรพร วันทอง            | T001  | 67167437     | [FT Buraphorn](https://quilled-edge-054.notion.site/3a2dadaf37a28042aaa6cf6913afc0f8?v=a02dadaf37a2833381f888987d344a59&source=copy_link) |
+| 5     | กนก รัตนเรืองรักษ์      | T001  | 67188118     | [FT Kanok](https://app.notion.com/p/3a2dadaf37a28028afacf3820d12d683?v=512dadaf37a282ac9c2e08952eb11778&source=copy_link) |
 
 ### Security
 
