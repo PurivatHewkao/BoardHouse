@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { money } from "../utils/format.js";
+import { validateAddress } from "../utils/validation.js";
 
 const carrierOptions = [
   "ไปรษณีย์ไทย (Thailand Post)",
@@ -34,6 +35,7 @@ function OrderDetailModal({
   const [carrier, setCarrier] = useState(order?.carrier || carrierOptions[0]);
   const [trackingNumber, setTrackingNumber] = useState(order?.trackingNumber || "");
   const [savedMessage, setSavedMessage] = useState("");
+  const [addressError, setAddressError] = useState("");
   const [trackingSavedMessage, setTrackingSavedMessage] = useState("");
 
   if (!order) {
@@ -48,6 +50,15 @@ function OrderDetailModal({
   }
 
   function handleSaveAddress() {
+    // ตรวจที่อยู่จัดส่งก่อนบันทึก (เบอร์ต้องเป็นตัวเลข, ไปรษณีย์ 5 หลัก ฯลฯ) — ที่อยู่ในออเดอร์ไม่มี label
+    const check = validateAddress(addressForm, { requireLabel: false });
+    if (!check.ok) {
+      setAddressError(check.message);
+      setSavedMessage("");
+      return;
+    }
+
+    setAddressError("");
     onSaveAddress?.({ shippingAddress: { ...addressForm } });
     setSavedMessage("บันทึกที่อยู่จัดส่งเรียบร้อยแล้ว");
     window.setTimeout(() => setSavedMessage(""), 2500);
@@ -294,6 +305,8 @@ function OrderDetailModal({
           ) : (
             <p className="mb-0 text-muted">ไม่มีข้อมูลที่อยู่จัดส่ง</p>
           )}
+
+          {editable && addressError && <p className="text-danger small mb-0 mt-2">{addressError}</p>}
 
           {editable && (
             <div className="d-flex flex-wrap align-items-center gap-3 mt-4 pt-3 border-top">

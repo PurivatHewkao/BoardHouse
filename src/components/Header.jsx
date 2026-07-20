@@ -14,7 +14,7 @@ function Header({ page, setPage, currentUser, onLogout }) {
         <button
           className="brand-button navbar-brand d-flex align-items-center gap-3 border-0 bg-transparent"
           type="button"
-          onClick={() => setPage("Home")}
+          onClick={() => setPage(isAdmin ? "Admin" : "Home")}
         >
           <span className="brand-icon d-inline-grid place-items-center">
             <DiceMark />

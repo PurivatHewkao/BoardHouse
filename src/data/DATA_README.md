@@ -185,16 +185,31 @@ logoutUser();
 คืนค่าเป็น `{ ok, message, users }` เหมือน `registerUser()`
 
 ```js
-import { getAdmins, createAdmin, promoteToAdmin, demoteToCustomer, deleteAdmin } from "../utils/userStorage.js";
+import { getAdmins, createAdmin, updateAdmin, deleteAdmin } from "../utils/userStorage.js";
 
 getAdmins();
-createAdmin({ actor: currentUser, name, email, password, phone });
-promoteToAdmin(currentUser, userId);
-demoteToCustomer(currentUser, userId);
+createAdmin({ actor: currentUser, name, email, password, phone }); // สร้างบัญชีแอดมินใหม่โดยตรง
+updateAdmin(currentUser, userId, { name, email, phone, password }); // แก้ข้อมูลแอดมินคนอื่น (password เว้นว่าง = ไม่เปลี่ยน)
 deleteAdmin(currentUser, userId);
 ```
 
 กติกา: บัญชี `superadmin` แก้/ลบไม่ได้ และ actor แตะบัญชีตัวเองไม่ได้
+หมายเหตุ: **ยกเลิก** การเลื่อนลูกค้าเป็นแอดมิน (`promoteToAdmin`/`demoteToCustomer`) แล้ว —
+ลูกค้ากับแอดมินเป็นคนละบทบาทกัน ต้องสร้างบัญชีแอดมินใหม่ด้วย `createAdmin` เท่านั้น
+
+### สมุดที่อยู่ของลูกค้า (address book — self-service)
+
+```js
+import { getUserAddresses, saveUserAddress, deleteUserAddress, setDefaultUserAddress } from "../utils/userStorage.js";
+
+getUserAddresses(currentUser);                    // อ่านรายการที่อยู่ทั้งหมด
+saveUserAddress(currentUser, address);            // เพิ่ม (ไม่มี id) หรือแก้ไข (มี id) + validate ในตัว
+setDefaultUserAddress(currentUser, addressId);    // ตั้งเป็นที่อยู่หลัก
+deleteUserAddress(currentUser, addressId);        // ลบที่อยู่
+```
+
+กติกา: แก้ได้เฉพาะบัญชีตัวเอง (`actor` = เจ้าของ), มีที่อยู่ `isDefault` ได้ครั้งละ 1 รายการ,
+และ `user.address` เป็นสำเนาของที่อยู่หลักไว้ให้โค้ดเดิม/ตอน checkout ใช้ต่อได้
 
 ### Orders/Admin
 

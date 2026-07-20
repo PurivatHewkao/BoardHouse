@@ -24,10 +24,11 @@ import {
   saveProducts,
 } from "./utils/productStorage.js";
 import { addAddressToUser, getCurrentUser, logoutUser, setCurrentUser } from "./utils/userStorage.js";
-import { canAccessAdmin } from "./utils/roles.js";
+import { canAccessAdmin, canAccessPage, isAdmin } from "./utils/roles.js";
 
 function App() {
-  const [page, setPage] = useState("Home");
+  // แอดมินเปิดแอปมาให้เข้าหน้าหลังบ้านเลย ลูกค้า/ผู้เยี่ยมชมเริ่มที่หน้า Home
+  const [page, setPage] = useState(() => (isAdmin(getCurrentUser()) ? "Admin" : "Home"));
   const [products, setProducts] = useState(getProducts);
   const [cart, setCart] = useState(getInitialCart);
   const [currentUser, updateCurrentUser] = useState(getCurrentUser);
@@ -141,9 +142,10 @@ function App() {
     }
   }, [page, currentUser]);
 
+  // กันไม่ให้แอดมินหลุดเข้าหน้าบ้าน (Home/Cart/Orders/Profile/Checkout) — เด้งกลับหน้า Admin
   useEffect(() => {
-    if (page === "Admin" && !canAccessAdmin(currentUser)) {
-      setPage("Home");
+    if (currentUser && !canAccessPage(currentUser, page)) {
+      setPage(isAdmin(currentUser) ? "Admin" : "Home");
     }
   }, [page, currentUser]);
 
@@ -181,7 +183,9 @@ function App() {
         )}
         {page === "Login" && <LoginRoute setPage={setPage} setCurrentUser={handleCurrentUser} />}
         {page === "Register" && <RegisterRoute setPage={setPage} setCurrentUser={handleCurrentUser} />}
-        {page === "Admin" && canAccessAdmin(currentUser) && <AdminRoute currentUser={currentUser} />}
+        {page === "Admin" && canAccessAdmin(currentUser) && (
+          <AdminRoute currentUser={currentUser} setCurrentUser={updateCurrentUser} />
+        )}
       </main>
       <Footer />
     </div>

@@ -1,37 +1,17 @@
 import React, { useMemo, useState } from "react";
 import { paymentMethods } from "../data/seedData.js";
 import { money } from "../utils/format.js";
+import { getUserAddresses } from "../utils/userStorage.js";
+import { validateAddress } from "../utils/validation.js";
 
-// ดึงข้อมูลจาก Profile มาอัปเดตใน Address List เสมอ และป้องกันที่อยู่หลักซ้ำซ้อน
+// ดึงสมุดที่อยู่ของผู้ใช้ (source of truth เดียวกับหน้า Profile) โดยเรียงที่อยู่หลักไว้บนสุด
 function getSavedAddresses(currentUser) {
   if (!currentUser) {
     return [];
   }
 
-  if (currentUser.address && currentUser.address.line1) {
-    return [
-      {
-        id: "legacy",
-        label: currentUser.address.label || "Home",
-        recipientName: currentUser.address.recipientName || currentUser.name || "",
-        phone: currentUser.address.phone || currentUser.phone || "",
-        line1: currentUser.address.line1 || "",
-        district: currentUser.address.district || "",
-        province: currentUser.address.province || "",
-        postalCode: currentUser.address.postalCode || "",
-      },
-      // กรองเอาเฉพาะข้อมูลที่ id ไม่เท่ากับ "legacy" และป้ายชื่อ (label) ไม่ซ้ำกับตัว default ใน Profile เพื่อไม่ให้โชว์ซ้ำ
-      ...(Array.isArray(currentUser.addresses) 
-        ? currentUser.addresses.filter(addr => addr.id !== "legacy" && addr.label !== (currentUser.address.label || "Home")) 
-        : [])
-    ];
-  }
-
-  if (Array.isArray(currentUser.addresses) && currentUser.addresses.length > 0) {
-    return currentUser.addresses;
-  }
-
-  return [];
+  const addresses = getUserAddresses(currentUser);
+  return [...addresses].sort((a, b) => Number(Boolean(b.isDefault)) - Number(Boolean(a.isDefault)));
 }
 
 function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage, saveAddress }) {
@@ -80,20 +60,12 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage, save
 
   function validate() {
     if (selectedAddressId === "new") {
-      if (!newAddress.recipientName.trim() || !newAddress.phone.trim()) {
-        return "Please provide a recipient name and phone number.";
-      }
-
-      if (
-        !newAddress.line1.trim() ||
-        !newAddress.district.trim() ||
-        !newAddress.province.trim() ||
-        !newAddress.postalCode.trim()
-      ) {
-        return "Please complete the full shipping address.";
+      const check = validateAddress(newAddress);
+      if (!check.ok) {
+        return check.message;
       }
     } else if (!getShippingAddress()) {
-      return "Please choose a shipping address.";
+      return "กรุณาเลือกที่อยู่จัดส่ง";
     }
 
     if (paymentMethod === "Credit Card") {

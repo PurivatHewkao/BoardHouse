@@ -1,24 +1,35 @@
 import React, { useState } from "react";
-import { changePassword, updateProfile } from "../utils/userStorage.js";
+import {
+  changePassword,
+  deleteUserAddress,
+  getUserAddresses,
+  saveUserAddress,
+  setDefaultUserAddress,
+  updateProfile,
+} from "../utils/userStorage.js";
 import { getAccessLabel } from "../utils/roles.js";
 
-// เพิ่มโครงสร้างข้อมูลให้ตรงกับหน้า Payment (Checkout)
+// โครงที่อยู่เปล่า สำหรับฟอร์มเพิ่มที่อยู่ใหม่
 const emptyAddress = {
-  label: "Home",
+  label: "บ้าน",
   recipientName: "",
   phone: "",
   line1: "",
   district: "",
   province: "",
   postalCode: "",
+  isDefault: false,
 };
 
 function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
   const [name, setName] = useState(currentUser?.name || "");
   const [email, setEmail] = useState(currentUser?.email || "");
   const [phone, setPhone] = useState(currentUser?.phone || "");
-  const [address, setAddress] = useState({ ...emptyAddress, ...(currentUser?.address || {}) });
   const [profileMessage, setProfileMessage] = useState(null);
+
+  // ฟอร์มที่อยู่: null = ปิดอยู่, object = กำลังเพิ่ม/แก้ไข (ถ้ามี id คือแก้ไข)
+  const [addressForm, setAddressForm] = useState(null);
+  const [addressMessage, setAddressMessage] = useState(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [nextPassword, setNextPassword] = useState("");
@@ -39,44 +50,10 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
     );
   }
 
-  function updateAddress(field, value) {
-    setAddress((current) => ({ ...current, [field]: value }));
-  }
-
-  // ปรับการตรวจสอบข้อมูลให้รองรับฟิลด์ใหม่ (ต้องกรอกครบทั้ง 6 ฟิลด์ย่อย หรือปล่อยว่างทั้งหมด)
-  function validateAddress() {
-    const filled = [
-      address.recipientName,
-      address.phone,
-      address.line1, 
-      address.district, 
-      address.province, 
-      address.postalCode
-    ].filter((value) => value && value.trim());
-
-    if (filled.length === 0 || filled.length === 6) {
-      return null;
-    }
-
-    return "Please complete the full address, including recipient name and phone number, or leave every address field blank.";
-  }
+  const addresses = getUserAddresses(currentUser);
 
   function handleSaveProfile() {
-    const addressError = validateAddress();
-
-    if (addressError) {
-      setProfileMessage({ ok: false, text: addressError });
-      return;
-    }
-
-    const hasAddress = address.line1.trim() !== "";
-    const result = updateProfile(currentUser, {
-      name,
-      email,
-      phone,
-      address: hasAddress ? address : null,
-    });
-
+    const result = updateProfile(currentUser, { name, email, phone });
     setProfileMessage({ ok: result.ok, text: result.message });
 
     if (result.ok) {
@@ -84,9 +61,63 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
     }
   }
 
+  function handleResetProfile() {
+    setName(currentUser.name || "");
+    setEmail(currentUser.email || "");
+    setPhone(currentUser.phone || "");
+    setProfileMessage(null);
+  }
+
+  // ----- Address book -----
+  function openAddAddress() {
+    setAddressMessage(null);
+    setAddressForm({ ...emptyAddress, recipientName: currentUser.name || "", phone: currentUser.phone || "" });
+  }
+
+  function openEditAddress(address) {
+    setAddressMessage(null);
+    setAddressForm({ ...emptyAddress, ...address });
+  }
+
+  function updateAddressField(field, value) {
+    setAddressForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleSaveAddress() {
+    const result = saveUserAddress(currentUser, addressForm);
+    if (result.ok) {
+      setCurrentUser(result.user);
+      setAddressForm(null);
+      setAddressMessage({ ok: true, text: result.message });
+    } else {
+      setAddressMessage({ ok: false, text: result.message });
+    }
+  }
+
+  function handleDeleteAddress(addressId) {
+    if (!confirm("ลบที่อยู่นี้ใช่ไหม?")) return;
+    const result = deleteUserAddress(currentUser, addressId);
+    if (result.ok) {
+      setCurrentUser(result.user);
+      setAddressMessage({ ok: true, text: result.message });
+    } else {
+      setAddressMessage({ ok: false, text: result.message });
+    }
+  }
+
+  function handleSetDefault(addressId) {
+    const result = setDefaultUserAddress(currentUser, addressId);
+    if (result.ok) {
+      setCurrentUser(result.user);
+      setAddressMessage({ ok: true, text: result.message });
+    } else {
+      setAddressMessage({ ok: false, text: result.message });
+    }
+  }
+
   function handleChangePassword() {
     if (nextPassword !== confirmPassword) {
-      setPasswordMessage({ ok: false, text: "New passwords do not match." });
+      setPasswordMessage({ ok: false, text: "รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน" });
       return;
     }
 
@@ -101,14 +132,6 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
     }
   }
 
-  function handleReset() {
-    setName(currentUser.name || "");
-    setEmail(currentUser.email || "");
-    setPhone(currentUser.phone || "");
-    setAddress({ ...emptyAddress, ...(currentUser.address || {}) });
-    setProfileMessage(null);
-  }
-
   return (
     <section className="py-5">
       <div className="container">
@@ -116,17 +139,18 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
           <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
             <div>
               <h1 className="page-title mb-2">My Profile</h1>
-              <p className="lead text-muted mb-0">Update your account details and password.</p>
+              <p className="lead text-muted mb-0">แก้ไขข้อมูลบัญชี ที่อยู่จัดส่ง และรหัสผ่านของคุณ</p>
             </div>
             <span className={`role-badge ${currentUser.role} flex-shrink-0`}>
               {getAccessLabel(currentUser)}
             </span>
           </div>
 
+          {/* ===== ข้อมูลบัญชี ===== */}
           <form className="card shadow-sm p-4 vstack gap-3 mb-4">
-            <h2 className="h5 mb-0">Account details</h2>
+            <h2 className="h5 mb-0">ข้อมูลบัญชี</h2>
             <label className="form-label">
-              Name
+              ชื่อ
               <input
                 className="form-control form-control-lg mt-2"
                 value={name}
@@ -134,93 +158,21 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
               />
             </label>
             <label className="form-label">
-              Email / Username
+              อีเมล / Username
               <input
                 className="form-control form-control-lg mt-2"
+                type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
               />
             </label>
             <label className="form-label">
-              Phone
+              เบอร์โทรศัพท์
               <input
                 className="form-control form-control-lg mt-2"
+                inputMode="tel"
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-              />
-            </label>
-
-            <h2 className="h5 mb-0 mt-2">Default address</h2>
-            <p className="small text-muted mb-0">Used to prefill the shipping form at checkout.</p>
-            <label className="form-label">
-              Label
-              <input
-                className="form-control form-control-lg mt-2"
-                value={address.label}
-                onChange={(event) => updateAddress("label", event.target.value)}
-              />
-            </label>
-
-            {/* เพิ่มช่อง Recipient Name และ Phone Number ในแถวเดียวกัน */}
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label w-100">
-                  Recipient Name
-                  <input
-                    className="form-control form-control-lg mt-2"
-                    value={address.recipientName || ""}
-                    onChange={(event) => updateAddress("recipientName", event.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label w-100">
-                  Phone Number
-                  <input
-                    className="form-control form-control-lg mt-2"
-                    value={address.phone || ""}
-                    onChange={(event) => updateAddress("phone", event.target.value)}
-                  />
-                </label>
-              </div>
-            </div>
-
-            <label className="form-label">
-              Address
-              <input
-                className="form-control form-control-lg mt-2"
-                value={address.line1}
-                onChange={(event) => updateAddress("line1", event.target.value)}
-              />
-            </label>
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label w-100">
-                  District
-                  <input
-                    className="form-control form-control-lg mt-2"
-                    value={address.district}
-                    onChange={(event) => updateAddress("district", event.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label w-100">
-                  Province
-                  <input
-                    className="form-control form-control-lg mt-2"
-                    value={address.province}
-                    onChange={(event) => updateAddress("province", event.target.value)}
-                  />
-                </label>
-              </div>
-            </div>
-            <label className="form-label">
-              Postal Code
-              <input
-                className="form-control form-control-lg mt-2"
-                value={address.postalCode}
-                onChange={(event) => updateAddress("postalCode", event.target.value)}
               />
             </label>
 
@@ -235,18 +187,169 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
                 type="button"
                 onClick={handleSaveProfile}
               >
-                Save Changes
+                บันทึกข้อมูล
               </button>
-              <button className="btn btn-outline-secondary btn-lg" type="button" onClick={handleReset}>
-                Cancel
+              <button className="btn btn-outline-secondary btn-lg" type="button" onClick={handleResetProfile}>
+                ยกเลิก
               </button>
             </div>
           </form>
 
+          {/* ===== สมุดที่อยู่ (หลายที่อยู่) ===== */}
+          <div className="card shadow-sm p-4 vstack gap-3 mb-4">
+            <div className="d-flex justify-content-between align-items-center">
+              <h2 className="h5 mb-0">ที่อยู่จัดส่ง</h2>
+              {!addressForm && (
+                <button className="btn btn-boardhouse btn-sm" type="button" onClick={openAddAddress}>
+                  + เพิ่มที่อยู่
+                </button>
+              )}
+            </div>
+            <p className="small text-muted mb-0">
+              บันทึกได้หลายที่อยู่ (เช่น บ้าน, ที่ทำงาน) แล้วเลือกใช้ตอนสั่งซื้อได้ ที่อยู่ "หลัก" จะถูกเลือกให้อัตโนมัติ
+            </p>
+
+            {addressMessage && (
+              <p className={`mb-0 ${addressMessage.ok ? "text-success" : "text-danger"}`}>{addressMessage.text}</p>
+            )}
+
+            {addresses.length === 0 && !addressForm && (
+              <p className="text-muted mb-0">ยังไม่มีที่อยู่ที่บันทึกไว้ กด "เพิ่มที่อยู่" เพื่อเริ่มต้น</p>
+            )}
+
+            {/* รายการที่อยู่ */}
+            {addresses.map((addr) => (
+              <div key={addr.id} className="border rounded p-3 d-flex flex-column flex-md-row justify-content-between gap-2">
+                <div>
+                  <div className="d-flex align-items-center gap-2 mb-1">
+                    <strong>{addr.label}</strong>
+                    {addr.isDefault && <span className="badge bg-success-subtle text-success">ที่อยู่หลัก</span>}
+                  </div>
+                  <div className="text-muted small">
+                    {addr.recipientName} &middot; {addr.phone}
+                    <br />
+                    {[addr.line1, addr.district, addr.province, addr.postalCode].filter(Boolean).join(", ")}
+                  </div>
+                </div>
+                <div className="d-flex flex-md-column gap-2 justify-content-end">
+                  {!addr.isDefault && (
+                    <button className="btn btn-sm btn-outline-success" type="button" onClick={() => handleSetDefault(addr.id)}>
+                      ตั้งเป็นหลัก
+                    </button>
+                  )}
+                  <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => openEditAddress(addr)}>
+                    แก้ไข
+                  </button>
+                  <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => handleDeleteAddress(addr.id)}>
+                    ลบ
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* ฟอร์มเพิ่ม/แก้ไขที่อยู่ */}
+            {addressForm && (
+              <div className="border rounded p-3 vstack gap-3 bg-light">
+                <h3 className="h6 mb-0">{addressForm.id ? "แก้ไขที่อยู่" : "เพิ่มที่อยู่ใหม่"}</h3>
+                <label className="form-label mb-0">
+                  ป้ายชื่อที่อยู่ (เช่น บ้าน, ที่ทำงาน)
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.label}
+                    onChange={(event) => updateAddressField("label", event.target.value)}
+                  />
+                </label>
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label w-100 mb-0">
+                      ชื่อผู้รับ
+                      <input
+                        className="form-control mt-2"
+                        value={addressForm.recipientName}
+                        onChange={(event) => updateAddressField("recipientName", event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label w-100 mb-0">
+                      เบอร์โทรผู้รับ
+                      <input
+                        className="form-control mt-2"
+                        inputMode="tel"
+                        value={addressForm.phone}
+                        onChange={(event) => updateAddressField("phone", event.target.value)}
+                      />
+                    </label>
+                  </div>
+                </div>
+                <label className="form-label mb-0">
+                  บ้านเลขที่ / ถนน
+                  <input
+                    className="form-control mt-2"
+                    value={addressForm.line1}
+                    onChange={(event) => updateAddressField("line1", event.target.value)}
+                  />
+                </label>
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label w-100 mb-0">
+                      เขต / อำเภอ
+                      <input
+                        className="form-control mt-2"
+                        value={addressForm.district}
+                        onChange={(event) => updateAddressField("district", event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label w-100 mb-0">
+                      จังหวัด
+                      <input
+                        className="form-control mt-2"
+                        value={addressForm.province}
+                        onChange={(event) => updateAddressField("province", event.target.value)}
+                      />
+                    </label>
+                  </div>
+                </div>
+                <label className="form-label mb-0">
+                  รหัสไปรษณีย์
+                  <input
+                    className="form-control mt-2"
+                    inputMode="numeric"
+                    value={addressForm.postalCode}
+                    onChange={(event) => updateAddressField("postalCode", event.target.value)}
+                  />
+                </label>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="address-default"
+                    checked={Boolean(addressForm.isDefault)}
+                    onChange={(event) => updateAddressField("isDefault", event.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="address-default">
+                    ตั้งเป็นที่อยู่หลัก
+                  </label>
+                </div>
+                <div className="d-flex gap-2">
+                  <button className="btn btn-boardhouse flex-grow-1" type="button" onClick={handleSaveAddress}>
+                    บันทึกที่อยู่
+                  </button>
+                  <button className="btn btn-outline-secondary" type="button" onClick={() => setAddressForm(null)}>
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ===== เปลี่ยนรหัสผ่าน ===== */}
           <form className="card shadow-sm p-4 vstack gap-3">
-            <h2 className="h5 mb-0">Change password</h2>
+            <h2 className="h5 mb-0">เปลี่ยนรหัสผ่าน</h2>
             <label className="form-label">
-              Current Password
+              รหัสผ่านปัจจุบัน
               <input
                 className="form-control form-control-lg mt-2"
                 type="password"
@@ -255,7 +358,7 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
               />
             </label>
             <label className="form-label">
-              New Password
+              รหัสผ่านใหม่
               <input
                 className="form-control form-control-lg mt-2"
                 type="password"
@@ -264,7 +367,7 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
               />
             </label>
             <label className="form-label">
-              Confirm New Password
+              ยืนยันรหัสผ่านใหม่
               <input
                 className="form-control form-control-lg mt-2"
                 type="password"
@@ -278,7 +381,7 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
               </p>
             )}
             <button className="btn btn-boardhouse btn-lg w-100" type="button" onClick={handleChangePassword}>
-              Change Password
+              เปลี่ยนรหัสผ่าน
             </button>
           </form>
         </div>
