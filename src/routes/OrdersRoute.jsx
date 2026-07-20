@@ -9,7 +9,13 @@ function OrdersRoute({ currentUser }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const visibleOrders = useMemo(() => {
-    if (!currentUser || isAdmin(currentUser)) {
+    // ผู้เยี่ยมชม (ยังไม่ล็อกอิน) ไม่ควรเห็นออเดอร์ของใครเลย — กันข้อมูลลูกค้าคนอื่นรั่ว
+    if (!currentUser) {
+      return [];
+    }
+
+    // แอดมินเห็นทั้งหมด (ปกติดูผ่านหน้า Admin อยู่แล้ว) ลูกค้าเห็นเฉพาะของตัวเอง
+    if (isAdmin(currentUser)) {
       return orders;
     }
 

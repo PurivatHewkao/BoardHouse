@@ -20,6 +20,24 @@ export function getOrdersByUser(userId) {
   return getOrders().filter((order) => order.userId === userId);
 }
 
+// เวลาที่ใช้จัดเรียงออเดอร์ — ใช้ createdAt (แม่นระดับวินาที) ถ้ามี ไม่งั้น fallback เป็นวันที่ (date)
+// จำเป็นเพราะ order.date เก็บแค่ระดับวัน ออเดอร์วันเดียวกันจะเรียงสลับกันมั่ว
+export function getOrderTime(order) {
+  if (order?.createdAt) {
+    return Number(order.createdAt) || 0;
+  }
+  if (order?.date) {
+    const time = new Date(order.date).getTime();
+    return Number.isFinite(time) ? time : 0;
+  }
+  return 0;
+}
+
+// เรียงออเดอร์จากใหม่ไปเก่า (ล่าสุดอยู่บนสุด)
+export function sortOrdersByNewest(orders) {
+  return [...orders].sort((a, b) => getOrderTime(b) - getOrderTime(a));
+}
+
 export function createOrder({ user, cartItems, paymentMethod = "Cash on Delivery", shippingAddress }) {
   const orderItems = cartItems.map((item) => ({
     productId: item.productId,

@@ -8,6 +8,9 @@ export const ADMIN_NAV = "Admin";
 
 const CUSTOMER_NAV = ["Home", "Cart", "Orders", "Profile"];
 
+// หน้าฝั่งลูกค้า (หน้าบ้าน) — แอดมิน/ซูเปอร์แอดมินไม่ควรเข้าถึง
+const CUSTOMER_ONLY_PAGES = ["Home", "Cart", "Orders", "Profile", "Checkout"];
+
 const ACCESS_LABELS = {
   [ROLES.CUSTOMER]: "Customer",
   [ROLES.ADMIN]: "Admin",
@@ -49,5 +52,17 @@ export function getNavItems(user) {
     return [];
   }
 
-  return isAdmin(user) ? [...CUSTOMER_NAV, ADMIN_NAV] : CUSTOMER_NAV;
+  // แอดมิน/ซูเปอร์แอดมินเห็นเฉพาะหน้าหลังบ้าน (Admin) เท่านั้น ไม่ปนกับหน้าซื้อของฝั่งลูกค้า
+  return isAdmin(user) ? [ADMIN_NAV] : CUSTOMER_NAV;
+}
+
+// เช็คว่า user คนนี้เข้าหน้านี้ได้หรือไม่ (ใช้กันแอดมินหลุดเข้าหน้าบ้าน และกันลูกค้าเข้าหน้า Admin)
+export function canAccessPage(user, page) {
+  if (isAdmin(user)) {
+    // แอดมินเข้าได้เฉพาะหน้า Admin และหน้า auth เท่านั้น
+    return !CUSTOMER_ONLY_PAGES.includes(page);
+  }
+
+  // ผู้ที่ไม่ใช่แอดมินเข้าหน้า Admin ไม่ได้
+  return page !== ADMIN_NAV;
 }

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { getOrders, updateOrderStatus, updateOrderDetails } from "../utils/orderStorage.js";
+import { getOrders, sortOrdersByNewest, updateOrderStatus, updateOrderDetails } from "../utils/orderStorage.js";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../utils/productStorage.js";
 import {
+  changePassword,
   createAdmin,
   deleteAdmin,
-  demoteToCustomer,
   getUsers,
-  promoteToAdmin,
+  updateAdmin,
+  updateProfile,
 } from "../utils/userStorage.js";
 import { canManageAdmins, isCustomer, isSuperAdmin, ROLES } from "../utils/roles.js";
 import { money, summarizeOrderItems } from "../utils/format.js";
@@ -14,7 +15,7 @@ import { resetStorage } from "../utils/localStorageDb.js";
 import { categories } from "../data/products.js";
 import OrderDetailModal from "../components/OrderDetailModal.jsx";
 
-function AdminRoute({ currentUser }) {
+function AdminRoute({ currentUser, setCurrentUser }) {
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [message, setMessage] = useState("");
   
@@ -59,8 +60,20 @@ function AdminRoute({ currentUser }) {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminPhone, setAdminPhone] = useState("");
-  const [promoteId, setPromoteId] = useState("");
   const [adminError, setAdminError] = useState("");
+
+  // State สำหรับแก้ไขข้อมูล admin คนอื่น (เฉพาะ Super Admin)
+  const [editingAdmin, setEditingAdmin] = useState(null);
+
+  // State หน้า "บัญชีของฉัน" — แอดมินแก้ข้อมูล/เปลี่ยนรหัสผ่านของตัวเองได้
+  const [myName, setMyName] = useState(currentUser?.name || "");
+  const [myEmail, setMyEmail] = useState(currentUser?.email || "");
+  const [myPhone, setMyPhone] = useState(currentUser?.phone || "");
+  const [myProfileMessage, setMyProfileMessage] = useState(null);
+  const [myCurrentPassword, setMyCurrentPassword] = useState("");
+  const [myNewPassword, setMyNewPassword] = useState("");
+  const [myConfirmPassword, setMyConfirmPassword] = useState("");
+  const [myPasswordMessage, setMyPasswordMessage] = useState(null);
 
   const { products, orders, users } = dashboardData;
   const customers = users.filter(isCustomer);
@@ -96,8 +109,8 @@ function AdminRoute({ currentUser }) {
     );
   });
 
-  const recentOrders = [...orders]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
+  // เรียงจากวันที่/เวลาสั่งซื้อล่าสุด (ใช้ createdAt เป็นหลัก) แล้วเอา 5 อันดับแรก
+  const recentOrders = sortOrdersByNewest(orders)
     .slice(0, 5)
     .map((order) => ({
       ...order,
@@ -166,25 +179,68 @@ function AdminRoute({ currentUser }) {
     }
   }
 
-  function handlePromote(e) {
-    e.preventDefault();
-    if (!promoteId) {
-      setAdminError("กรุณาเลือกลูกค้าที่ต้องการเลื่อนขั้น");
-      return;
-    }
-    if (applyAdminResult(promoteToAdmin(currentUser, Number(promoteId)))) {
-      setPromoteId("");
-    }
+  function handleStartEditAdmin(user) {
+    setAdminError("");
+    setEditingAdmin({
+      id: user.id,
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      password: "",
+    });
   }
 
-  function handleDemote(user) {
-    if (!confirm(`ลดขั้น "${user.name}" กลับเป็นลูกค้าใช่ไหม?`)) return;
-    applyAdminResult(demoteToCustomer(currentUser, user.id));
+  function handleEditAdminField(field, value) {
+    setEditingAdmin((current) => (current ? { ...current, [field]: value } : current));
+  }
+
+  function handleSaveEditAdmin(e) {
+    e.preventDefault();
+    if (!editingAdmin) return;
+    const result = updateAdmin(currentUser, editingAdmin.id, {
+      name: editingAdmin.name,
+      email: editingAdmin.email,
+      phone: editingAdmin.phone,
+      password: editingAdmin.password,
+    });
+    if (applyAdminResult(result)) {
+      setEditingAdmin(null);
+    }
   }
 
   function handleDeleteAdmin(user) {
     if (!confirm(`ลบบัญชี admin "${user.name}" ถาวรใช่ไหม?`)) return;
     applyAdminResult(deleteAdmin(currentUser, user.id));
+  }
+
+  // ----- บัญชีของฉัน (แอดมินแก้ข้อมูล/รหัสผ่านตัวเอง) -----
+  function handleSaveMyProfile(e) {
+    e.preventDefault();
+    const result = updateProfile(currentUser, { name: myName, email: myEmail, phone: myPhone });
+    setMyProfileMessage({ ok: result.ok, text: result.message });
+    if (result.ok) {
+      setCurrentUser?.(result.user);
+      refreshData();
+    }
+  }
+
+  function handleChangeMyPassword(e) {
+    e.preventDefault();
+    if (myNewPassword !== myConfirmPassword) {
+      setMyPasswordMessage({ ok: false, text: "รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน" });
+      return;
+    }
+    const result = changePassword(currentUser, {
+      currentPassword: myCurrentPassword,
+      nextPassword: myNewPassword,
+    });
+    setMyPasswordMessage({ ok: result.ok, text: result.message });
+    if (result.ok) {
+      setCurrentUser?.(result.user);
+      setMyCurrentPassword("");
+      setMyNewPassword("");
+      setMyConfirmPassword("");
+    }
   }
 
   const handleImageUpload = (e) => {
@@ -336,6 +392,9 @@ function AdminRoute({ currentUser }) {
                   Admins
                 </button>
               )}
+              <button className={`list-group-item list-group-item-action ${currentTab === "account" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("account")}>
+                บัญชีของฉัน
+              </button>
             </div>
           </aside>
 
@@ -703,7 +762,7 @@ function AdminRoute({ currentUser }) {
                   <div className="col">
                     <div className="card border-0 shadow-sm h-100">
                       <div className="card-body p-3">
-                        <p className="mb-1 text-muted small">เคยสั่งซื้อ</p>
+                        <p className="mb-1 text-muted small">ลูกค้าที่เคยซื้อสินค้า</p>
                         <strong className="h3">{activeCustomerCount}</strong>
                       </div>
                     </div>
@@ -860,47 +919,29 @@ function AdminRoute({ currentUser }) {
                 {adminError && <div className="alert alert-danger border-0 shadow-sm">{adminError}</div>}
                 {message && <div className="alert alert-success border-0 shadow-sm">{message}</div>}
 
-                <div className="row g-3 mb-4">
-                  <div className="col-lg-7">
-                    <div className="card border-0 shadow-sm h-100">
-                      <div className="card-body p-3">
-                        <h2 className="h6 mb-3">เพิ่ม Admin ใหม่</h2>
-                        <form className="row g-2" onSubmit={handleCreateAdmin}>
-                          <div className="col-md-6">
-                            <input className="form-control" placeholder="ชื่อ-นามสกุล" value={adminName} onChange={(e) => setAdminName(e.target.value)} required />
-                          </div>
-                          <div className="col-md-6">
-                            <input className="form-control" type="email" placeholder="อีเมล" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} required />
-                          </div>
-                          <div className="col-md-6">
-                            <input className="form-control" type="password" placeholder="รหัสผ่าน" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} required />
-                          </div>
-                          <div className="col-md-6">
-                            <input className="form-control" placeholder="เบอร์โทร (ไม่บังคับ)" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} />
-                          </div>
-                          <div className="col-12">
-                            <button className="btn btn-boardhouse w-100" type="submit">เพิ่ม Admin</button>
-                          </div>
-                        </form>
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-body p-3">
+                    <h2 className="h6 mb-1">เพิ่ม Admin ใหม่</h2>
+                    <p className="text-muted small mb-3">
+                      สร้างบัญชีแอดมินขึ้นมาใหม่โดยตรง (แยกจากบัญชีลูกค้า) เพื่อไม่ให้ข้อมูลการซื้อของปนกัน
+                    </p>
+                    <form className="row g-2" onSubmit={handleCreateAdmin}>
+                      <div className="col-md-6">
+                        <input className="form-control" placeholder="ชื่อ-นามสกุล" value={adminName} onChange={(e) => setAdminName(e.target.value)} required />
                       </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-5">
-                    <div className="card border-0 shadow-sm h-100">
-                      <div className="card-body p-3">
-                        <h2 className="h6 mb-3">เลื่อนขั้นลูกค้าเป็น Admin</h2>
-                        <form className="vstack gap-2" onSubmit={handlePromote}>
-                          <select className="form-select" value={promoteId} onChange={(e) => setPromoteId(e.target.value)}>
-                            <option value="">— เลือกลูกค้า —</option>
-                            {customers.map((customer) => (
-                              <option key={customer.id} value={customer.id}>{customer.name} ({customer.email})</option>
-                            ))}
-                          </select>
-                          <button className="btn btn-boardhouse" type="submit">เลื่อนขั้นเป็น Admin</button>
-                          {customers.length === 0 && <small className="text-muted">ยังไม่มีลูกค้าให้เลื่อนขั้น</small>}
-                        </form>
+                      <div className="col-md-6">
+                        <input className="form-control" type="email" placeholder="อีเมล" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} required />
                       </div>
-                    </div>
+                      <div className="col-md-6">
+                        <input className="form-control" type="password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} required />
+                      </div>
+                      <div className="col-md-6">
+                        <input className="form-control" placeholder="เบอร์โทร (ไม่บังคับ)" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} />
+                      </div>
+                      <div className="col-12 col-md-4 ms-md-auto">
+                        <button className="btn btn-boardhouse w-100" type="submit">เพิ่ม Admin</button>
+                      </div>
+                    </form>
                   </div>
                 </div>
 
@@ -946,7 +987,7 @@ function AdminRoute({ currentUser }) {
                                     </small>
                                   ) : (
                                     <div className="d-flex gap-2 justify-content-end">
-                                      <button type="button" className="btn btn-sm btn-outline-warning" onClick={() => handleDemote(admin)}>ลดขั้น</button>
+                                      <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => handleStartEditAdmin(admin)}>แก้ไข</button>
                                       <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteAdmin(admin)}>ลบ</button>
                                     </div>
                                   )}
@@ -956,6 +997,70 @@ function AdminRoute({ currentUser }) {
                           })}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ================= 6. หน้า บัญชีของฉัน (แอดมินทุกคน) ================= */}
+            {currentTab === "account" && (
+              <>
+                <div className="mb-4">
+                  <h1 className="page-title mb-2">บัญชีของฉัน</h1>
+                  <p className="lead text-muted mb-0">แก้ไขข้อมูลส่วนตัวและเปลี่ยนรหัสผ่านของบัญชีคุณเอง</p>
+                </div>
+
+                <div className="row g-4">
+                  <div className="col-lg-6">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-4">
+                        <h2 className="h6 mb-3">ข้อมูลส่วนตัว</h2>
+                        <form className="vstack gap-3" onSubmit={handleSaveMyProfile}>
+                          <div>
+                            <label className="form-label fw-semibold">ชื่อ-นามสกุล</label>
+                            <input className="form-control" value={myName} onChange={(e) => setMyName(e.target.value)} required />
+                          </div>
+                          <div>
+                            <label className="form-label fw-semibold">อีเมล</label>
+                            <input className="form-control" type="email" value={myEmail} onChange={(e) => setMyEmail(e.target.value)} required />
+                          </div>
+                          <div>
+                            <label className="form-label fw-semibold">เบอร์โทร (ไม่บังคับ)</label>
+                            <input className="form-control" inputMode="tel" value={myPhone} onChange={(e) => setMyPhone(e.target.value)} />
+                          </div>
+                          {myProfileMessage && (
+                            <p className={`mb-0 ${myProfileMessage.ok ? "text-success" : "text-danger"}`}>{myProfileMessage.text}</p>
+                          )}
+                          <button type="submit" className="btn btn-boardhouse">บันทึกข้อมูล</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-6">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body p-4">
+                        <h2 className="h6 mb-3">เปลี่ยนรหัสผ่าน</h2>
+                        <form className="vstack gap-3" onSubmit={handleChangeMyPassword}>
+                          <div>
+                            <label className="form-label fw-semibold">รหัสผ่านปัจจุบัน</label>
+                            <input className="form-control" type="password" value={myCurrentPassword} onChange={(e) => setMyCurrentPassword(e.target.value)} required />
+                          </div>
+                          <div>
+                            <label className="form-label fw-semibold">รหัสผ่านใหม่</label>
+                            <input className="form-control" type="password" value={myNewPassword} onChange={(e) => setMyNewPassword(e.target.value)} required />
+                          </div>
+                          <div>
+                            <label className="form-label fw-semibold">ยืนยันรหัสผ่านใหม่</label>
+                            <input className="form-control" type="password" value={myConfirmPassword} onChange={(e) => setMyConfirmPassword(e.target.value)} required />
+                          </div>
+                          {myPasswordMessage && (
+                            <p className={`mb-0 ${myPasswordMessage.ok ? "text-success" : "text-danger"}`}>{myPasswordMessage.text}</p>
+                          )}
+                          <button type="submit" className="btn btn-boardhouse">เปลี่ยนรหัสผ่าน</button>
+                        </form>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -978,6 +1083,46 @@ function AdminRoute({ currentUser }) {
           onSaveTracking={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
           onComplete={() => handleOrderStatusChange(selectedOrder.id, "Completed")}
         />
+      )}
+
+      {/* Modal แก้ไขข้อมูล Admin (เฉพาะ Super Admin) */}
+      {editingAdmin && (
+        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }} tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow">
+              <div className="modal-header">
+                <h5 className="modal-title">แก้ไขข้อมูล Admin</h5>
+                <button type="button" className="btn-close" onClick={() => setEditingAdmin(null)}></button>
+              </div>
+              <form onSubmit={handleSaveEditAdmin}>
+                <div className="modal-body">
+                  {adminError && <div className="alert alert-danger border-0">{adminError}</div>}
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">ชื่อ-นามสกุล</label>
+                    <input className="form-control" value={editingAdmin.name} onChange={(e) => handleEditAdminField("name", e.target.value)} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">อีเมล</label>
+                    <input className="form-control" type="email" value={editingAdmin.email} onChange={(e) => handleEditAdminField("email", e.target.value)} required />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">เบอร์โทร (ไม่บังคับ)</label>
+                    <input className="form-control" value={editingAdmin.phone} onChange={(e) => handleEditAdminField("phone", e.target.value)} />
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label fw-semibold">รหัสผ่านใหม่</label>
+                    <input className="form-control" type="password" placeholder="เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยน" value={editingAdmin.password} onChange={(e) => handleEditAdminField("password", e.target.value)} />
+                    <small className="text-muted">กรอกเฉพาะเมื่อต้องการตั้งรหัสผ่านใหม่ให้แอดมินคนนี้</small>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-light border" onClick={() => setEditingAdmin(null)}>ยกเลิก</button>
+                  <button type="submit" className="btn btn-boardhouse">บันทึกการแก้ไข</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );
