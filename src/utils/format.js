@@ -1,5 +1,12 @@
 export function money(value) {
-  return `$${value.toFixed(2)}`;
+  const amount = Number(value);
+
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency: "THB",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(amount) ? amount : 0);
 }
 
 // ย่อชื่อสินค้าที่ยาวเกินไปด้วยการตัดเป็นคำๆ (ไม่ตัดกลางคำ และไม่เติม "..." ต่อท้าย)

@@ -38,7 +38,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "40-60 นาที",
     difficulty: "Medium",
-    image: "/images/products/catan.jpg",
+    image: "/images/boardgames/catan.png",
     description: "เกมวางแผนสร้างเมือง เก็บทรัพยากร แลกเปลี่ยนกับผู้เล่นอื่น และขยายถนนกับชุมชนเพื่อสะสมคะแนนชัยชนะ",
   },
   {
@@ -52,7 +52,7 @@ export const products = [
     maxPlayers: 5,
     playTime: "30-50 นาที",
     difficulty: "Easy",
-    image: "/images/products/ticket-to-ride.jpg",
+    image: "/images/boardgames/ticket-to-ride.png",
     description: "เกมต่อเส้นทางรถไฟบนแผนที่ ผู้เล่นต้องเก็บการ์ดสีให้ครบและเชื่อมเมืองตามภารกิจเพื่อทำคะแนน",
   },
   {
@@ -66,7 +66,7 @@ export const products = [
     maxPlayers: 8,
     playTime: "20 นาที",
     difficulty: "Easy",
-    image: "/images/products/codenames.jpg",
+    image: "/images/boardgames/codenames.jpg",
     description: "เกมทายคำแบบทีม หัวหน้าทีมให้คำใบ้เพื่อพาเพื่อนเลือกคำที่ถูกต้องโดยหลีกเลี่ยงคำอันตราย",
   },
   {
@@ -80,7 +80,7 @@ export const products = [
     maxPlayers: 5,
     playTime: "60-120 นาที",
     difficulty: "Medium",
-    image: "/images/products/wingspan.jpg",
+    image: "/images/boardgames/wingspan.png",
     description: "เกมสร้างระบบนิเวศนกในเขตอนุรักษ์ เลือกการ์ดนก จัดการอาหาร วางไข่ และสร้างคอมโบเพื่อทำคะแนน",
   },
   {
@@ -94,7 +94,7 @@ export const products = [
     maxPlayers: 10,
     playTime: "10-30 นาที",
     difficulty: "Easy",
-    image: "/images/products/uno.jpg",
+    image: "/images/boardgames/uno.webp",
     description: "เกมการ์ดครอบครัวที่เล่นง่าย ผลัดกันลงการ์ดสีหรือตัวเลขให้ตรงกัน ใช้การ์ดพิเศษเพื่อพลิกสถานการณ์",
   },
   {
@@ -108,7 +108,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "30-60 นาที",
     difficulty: "Medium",
-    image: "/images/products/azul.jpg",
+    image: "/images/boardgames/azul.jpg",
     description: "เกมวางแผ่นกระเบื้องลายสวย ผู้เล่นเลือกกระเบื้องจากโรงงานและจัดลงบอร์ดให้ได้รูปแบบที่ทำคะแนนสูง",
   },
   {
@@ -122,7 +122,7 @@ export const products = [
     maxPlayers: 8,
     playTime: "20-40 นาที",
     difficulty: "Easy",
-    image: "/images/products/dixit.jpg",
+    image: "/images/boardgames/dixit.jpg",
     description: "เกมเล่าเรื่องจากภาพเหนือจินตนาการ ผู้เล่นให้คำใบ้จากการ์ดภาพและทายว่าการ์ดของนักเล่าเรื่องคือใบไหน",
   },
   {
@@ -136,7 +136,7 @@ export const products = [
     maxPlayers: 7,
     playTime: "40-60 นาที",
     difficulty: "Medium",
-    image: "/images/products/7-wonders.jpg",
+    image: "/images/boardgames/7-wonders.jpg",
     description: "เกมดราฟต์การ์ดสร้างอารยธรรม เก็บทรัพยากร พัฒนาวิทยาการ กองทัพ และสิ่งมหัศจรรย์ในหลายยุค",
   },
   {
@@ -150,7 +150,7 @@ export const products = [
     maxPlayers: 18,
     playTime: "20-30 นาที",
     difficulty: "Easy",
-    image: "/images/products/werewolf.jpg",
+    image: "/images/boardgames/werewolf.png",
     description: "เกมจับโกหกในหมู่บ้าน ผู้เล่นต้องสืบหามนุษย์หมาป่าจากการพูดคุย โหวต และบทบาทลับของแต่ละคน",
   },
   {
@@ -164,7 +164,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "45-90 นาที",
     difficulty: "Medium",
-    image: "/images/products/pandemic.jpg",
+    image: "/images/boardgames/pandemic.png",
     description: "เกมร่วมมือกันหยุดโรคระบาดทั่วโลก ผู้เล่นใช้ความสามารถเฉพาะตัวเดินทาง รักษาโรค และค้นคว้ายาให้ทันเวลา",
   },
   {
@@ -178,7 +178,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "30 นาที",
     difficulty: "Easy",
-    image: "/images/products/splendor.jpg",
+    image: "/images/boardgames/splendor.jpg",
     description: "เกมสะสมอัญมณีและซื้อการ์ดพัฒนาเพื่อสร้างเครื่องยนต์คะแนน แข่งกันดึงดูดขุนนางและไปถึงแต้มเป้าหมายก่อน",
   },
   {
@@ -192,7 +192,7 @@ export const products = [
     maxPlayers: 5,
     playTime: "35-45 นาที",
     difficulty: "Easy",
-    image: "/images/products/carcassonne.jpg",
+    image: "/images/boardgames/carcassonne.jpg",
     description: "เกมวางแผ่นภูมิประเทศต่อเมือง ถนน ทุ่ง และวัด ผู้เล่นวางตัว meeple เพื่อยึดพื้นที่และทำคะแนนจากสิ่งก่อสร้าง",
   },
   {
@@ -206,7 +206,7 @@ export const products = [
     maxPlayers: 10,
     playTime: "30-45 นาที",
     difficulty: "Medium",
-    image: "/images/products/avalon.jpg",
+    image: "/images/boardgames/the-resistance-avalon.jpg",
     description: "เกมบทบาทลับฝ่ายดีและฝ่ายร้าย ผู้เล่นพูดคุย หลอกล่อ และโหวตเลือกทีมทำภารกิจเพื่อชิงความได้เปรียบ",
   },
   {
@@ -220,7 +220,7 @@ export const products = [
     maxPlayers: 5,
     playTime: "15-20 นาที",
     difficulty: "Easy",
-    image: "/images/products/exploding-kittens.jpg",
+    image: "/images/boardgames/exploding-kittens.png",
     description: "เกมการ์ดจังหวะไวที่ผู้เล่นจั่วการ์ดและพยายามหลบระเบิดด้วยการ์ดพิเศษ ทั้งขโมย ข้ามตา และสับกอง",
   },
   {
@@ -234,7 +234,7 @@ export const products = [
     maxPlayers: 5,
     playTime: "15 นาที",
     difficulty: "Easy",
-    image: "/images/products/sushi-go.jpg",
+    image: "/images/boardgames/sushi-go.jpg",
     description: "เกมดราฟต์การ์ดซูชิที่รวดเร็ว เลือกเมนูทำคอมโบคะแนนจากมากิ ซาชิมิ เกี๊ยว และพุดดิ้ง",
   },
   {
@@ -248,7 +248,7 @@ export const products = [
     maxPlayers: 7,
     playTime: "40-60 นาที",
     difficulty: "Medium",
-    image: "/images/products/mysterium.jpg",
+    image: "/images/boardgames/mysterium.jpg",
     description: "เกมร่วมมือสืบคดีผู้เล่นรับคำใบ้จากภาพปริศนาของวิญญาณเพื่อหาฆาตกร สถานที่ และอาวุธให้ถูกต้อง",
   },
   {
@@ -262,7 +262,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "30 นาที",
     difficulty: "Easy",
-    image: "/images/products/forbidden-island.jpg",
+    image: "/images/boardgames/forbidden-island.jpg",
     description: "เกมร่วมมือหนีเกาะที่กำลังจม ผู้เล่นต้องเก็บสมบัติใช้ความสามารถทีม และขึ้นเฮลิคอปเตอร์ก่อนน้ำท่วมหมด",
   },
   {
@@ -276,7 +276,7 @@ export const products = [
     maxPlayers: 7,
     playTime: "20 นาที",
     difficulty: "Easy",
-    image: "/images/products/just-one.jpg",
+    image: "/images/boardgames/just-one.jpg",
     description: "เกมปาร์ตี้ทายคำแบบร่วมมือ ทุกคนเขียนคำใบ้คนละคำและต้องไม่ซ้ำกันเพื่อช่วยให้ผู้ทายตอบให้ถูก",
   },
   {
@@ -290,7 +290,7 @@ export const products = [
     maxPlayers: 6,
     playTime: "15-20 นาที",
     difficulty: "Easy",
-    image: "/images/products/love-letter.jpg",
+    image: "/images/boardgames/love-letter.webp",
     description: "เกมการ์ดจำนวนน้อยแต่ตัดสินใจเข้มข้น ผู้เล่นใช้ความสามารถของตัวละครเพื่อคัดคนอื่นออกและส่งจดหมายถึงเจ้าหญิง",
   },
   {
@@ -304,7 +304,7 @@ export const products = [
     maxPlayers: 5,
     playTime: "25 นาที",
     difficulty: "Medium",
-    image: "/images/products/hanabi.jpg",
+    image: "/images/boardgames/hanabi.jpg",
     description: "เกมการ์ดร่วมมือที่ผู้เล่นมองไม่เห็นไพ่ตัวเอง ต้องให้คำใบ้จำกัดเพื่อเรียงดอกไม้ไฟตามสีและตัวเลขให้สำเร็จ",
   },
   {
@@ -318,7 +318,7 @@ export const products = [
     maxPlayers: 2,
     playTime: "30 นาที",
     difficulty: "Easy",
-    image: "/images/products/jaipur.jpg",
+    image: "/images/boardgames/jaipur.jpg",
     description: "เกมการ์ดค้าขายสำหรับสองคน ซื้อขายสินค้า อูฐ และโทเคนโบนัสเพื่อทำกำไรมากกว่าคู่แข่งในแต่ละรอบ",
   },
   {
@@ -332,7 +332,7 @@ export const products = [
     maxPlayers: 6,
     playTime: "15 นาที",
     difficulty: "Easy",
-    image: "/images/products/coup.jpg",
+    image: "/images/boardgames/coup.jpg",
     description: "เกมบลัฟบทบาทลับ ผู้เล่นอ้างตัวละครเพื่อเก็บเงิน โจมตี หรือขัดขวางกัน พร้อมจับโกหกให้ถูกจังหวะ",
   },
   {
@@ -346,7 +346,7 @@ export const products = [
     maxPlayers: 8,
     playTime: "30-45 นาที",
     difficulty: "Medium",
-    image: "/images/products/decrypto.jpg",
+    image: "/images/boardgames/decrypto.png",
     description: "เกมใบ้รหัสแบบทีม ต้องสื่อสารคำใบ้ให้ทีมตัวเองเข้าใจลำดับรหัส พร้อมพยายามถอดรหัสของฝ่ายตรงข้าม",
   },
   {
@@ -360,7 +360,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "15-25 นาที",
     difficulty: "Easy",
-    image: "/images/products/kingdomino.jpg",
+    image: "/images/boardgames/kingdomino.webp",
     description: "เกมต่ออาณาจักรด้วยแผ่นโดมิโนภูมิประเทศ เลือกแผ่นที่มีมงกุฎและจัดพื้นที่ให้คุ้มเพื่อทำคะแนนสูงสุด",
   },
   {
@@ -374,7 +374,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "45-60 นาที",
     difficulty: "Hard",
-    image: "/images/products/photosynthesis.jpg",
+    image: "/images/boardgames/photosynthesis.webp",
     description: "เกมปลูกป่าเชิงวางแผน ผู้เล่นปลูกและเติบโตต้นไม้โดยคำนวณทิศทางแสงอาทิตย์เพื่อเก็บพลังงานและทำคะแนน",
   },
   {
@@ -388,7 +388,7 @@ export const products = [
     maxPlayers: 6,
     playTime: "60-90 นาที",
     difficulty: "Medium",
-    image: "/images/products/betrayal.jpg",
+    image: "/images/boardgames/betrayal-at-house-on-the-hill.jpg",
     description: "เกมสำรวจคฤหาสน์หลอนแบบเล่าเรื่อง ผู้เล่นเปิดห้องใหม่ เก็บไอเทม และเจอสถานการณ์หักมุมที่อาจมีผู้ทรยศ",
   },
   {
@@ -402,7 +402,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "15-20 นาที",
     difficulty: "Easy",
-    image: "/images/products/the-mind.jpg",
+    image: "/images/boardgames/the-mind.jpg",
     description: "เกมการ์ดร่วมมือที่ห้ามสื่อสารตรง ๆ ผู้เล่นต้องจับจังหวะและลงตัวเลขเรียงจากน้อยไปมากให้สำเร็จทุกด่าน",
   },
   {
@@ -416,7 +416,7 @@ export const products = [
     maxPlayers: 2,
     playTime: "15-30 นาที",
     difficulty: "Easy",
-    image: "/images/products/patchwork.jpg",
+    image: "/images/boardgames/patchwork.png",
     description: "เกมวางแผ่นผ้าสำหรับสองคน เลือกชิ้นผ้าที่มีรูปทรงต่างกันเพื่อปิดบอร์ดให้แน่นและบริหารกระดุมเป็นคะแนน",
   },
   {
@@ -430,7 +430,7 @@ export const products = [
     maxPlayers: 8,
     playTime: "30 นาที",
     difficulty: "Easy",
-    image: "/images/products/telestrations.jpg",
+    image: "/images/boardgames/telestrations.jpg",
     description: "ส่งสมุดวนไปให้คนอื่นวาดหรือทายจนเกิดผลลัพธ์ขำๆ จากความเข้าใจผิด",
   },
   {
@@ -444,7 +444,7 @@ export const products = [
     maxPlayers: 8,
     playTime: "15-30 นาที",
     difficulty: "Easy",
-    image: "/images/products/spyfall.jpg",
+    image: "/images/boardgames/spyfall.jpg",
     description: "เกมถามตอบบทบาทลับ ผู้เล่นส่วนใหญ่รู้สถานที่เดียวกัน ส่วนสายลับต้องเดาให้ทันก่อนถูกจับได้",
   },
   {
@@ -458,7 +458,7 @@ export const products = [
     maxPlayers: 7,
     playTime: "20-40 นาที",
     difficulty: "Easy",
-    image: "/images/products/bang.jpg",
+    image: "/images/boardgames/bang.png",
     description: "เกมการ์ดดวลปืนบทบาทลับในธีมตะวันตก นายอำเภอ ผู้ช่วย คนนอกกฎหมาย และคนทรยศมีเป้าหมายต่างกัน",
   },
   {
@@ -472,7 +472,7 @@ export const products = [
     maxPlayers: 8,
     playTime: "30-45 นาที",
     difficulty: "Easy",
-    image: "/images/products/camel-up.jpg",
+    image: "/images/boardgames/camel-up.jpg",
     description: "เกมครอบครัวแข่งเดิมพันอูฐ ผู้เล่นทายผลการแข่งขันที่พลิกผันจากลูกเต๋าและอูฐที่ซ้อนกันบนสนาม",
   },
   {
@@ -486,7 +486,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "45 นาที",
     difficulty: "Easy",
-    image: "/images/products/takenoko.jpg",
+    image: "/images/boardgames/takenoko.jpg",
     description: "เกมดูแลสวนไผ่และแพนด้า ผู้เล่นทำภารกิจปลูกไผ่ จัดแปลงสวน และขยับตัวละครเพื่อเก็บคะแนนจากเป้าหมาย",
   },
   {
@@ -500,7 +500,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "60-120 นาที",
     difficulty: "Hard",
-    image: "/images/products/dune-imperium.jpg",
+    image: "/images/boardgames/dune-imperium.png",
     description: "เกมวางแผนผสมดราฟต์การ์ดและวางคนงาน ผู้เล่นแย่งอิทธิพล ทรัพยากร และชัยชนะทางการเมืองในจักรวาลทะเลทราย",
   },
   {
@@ -514,7 +514,7 @@ export const products = [
     maxPlayers: 4,
     playTime: "60-90 นาที",
     difficulty: "Hard",
-    image: "/images/products/root.jpg",
+    image: "/images/boardgames/root.jpg",
     description: "เกมวางแผนควบคุมพื้นที่แบบไม่สมมาตร แต่ละฝ่ายมีกติกาและวิธีทำคะแนนต่างกัน ทำให้การต่อสู้บนแผนที่เข้มข้น",
   }
 ];
