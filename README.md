@@ -487,11 +487,6 @@ https://quilled-edge-054.notion.site/3a3dadaf37a28079ac5df91952911184?v=a57dadaf
 | 4     | บุรพร วันทอง            | T001  | 67167437     | [FT Buraphorn](https://quilled-edge-054.notion.site/3a2dadaf37a28042aaa6cf6913afc0f8?v=a02dadaf37a2833381f888987d344a59&source=copy_link) |
 | 5     | กนก รัตนเรืองรักษ์      | T001  | 67188118     | [FT Kanok](https://app.notion.com/p/3a2dadaf37a28028afacf3820d12d683?v=512dadaf37a282ac9c2e08952eb11778&source=copy_link) |
 
-### Security
-
-### Performance
-
-ใช้ JMeter ดูก่อน
 
 ### User Acceptance 
 https://quilled-edge-054.notion.site/3a1dadaf37a28069a987e5e7becfb3ff?v=3a1dadaf37a2807aadf7000c32cf3915 </br>
