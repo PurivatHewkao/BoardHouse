@@ -137,7 +137,12 @@ export function addAddressToUser(userId, address) {
     const existingAddresses = Array.isArray(user.addresses) ? user.addresses : [];
     const nextId = existingAddresses.length ? Math.max(...existingAddresses.map((item) => item.id)) + 1 : 1;
     const nextAddress = { id: nextId, label: "Home", ...address };
-    savedUser = { ...user, addresses: [...existingAddresses, nextAddress] };
+    savedUser = {
+      ...user,
+      addresses: [...existingAddresses, nextAddress],
+      // ให้ที่อยู่ใหม่จาก checkout กลายเป็น "Default address" ที่หน้า Profile ด้วย ไม่งั้นลูกค้าจะไม่เห็นที่อยู่นี้ในโปรไฟล์เลย
+      address: { ...address },
+    };
     return savedUser;
   });
 

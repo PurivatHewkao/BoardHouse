@@ -2,39 +2,33 @@ import React, { useMemo, useState } from "react";
 import { paymentMethods } from "../data/seedData.js";
 import { money } from "../utils/format.js";
 
-const emptyNewAddress = {
-  label: "Home",
-  recipientName: "",
-  phone: "",
-  line1: "",
-  district: "",
-  province: "",
-  postalCode: "",
-};
-
-// รวมที่อยู่ที่บันทึกไว้ของผู้ใช้ (addresses[]) และรองรับผู้ใช้เก่าที่มีแค่ address เดี่ยว (legacy)
+// ดึงข้อมูลจาก Profile มาอัปเดตใน Address List เสมอ และป้องกันที่อยู่หลักซ้ำซ้อน
 function getSavedAddresses(currentUser) {
   if (!currentUser) {
     return [];
   }
 
-  if (Array.isArray(currentUser.addresses) && currentUser.addresses.length > 0) {
-    return currentUser.addresses;
-  }
-
-  if (currentUser.address) {
+  if (currentUser.address && currentUser.address.line1) {
     return [
       {
         id: "legacy",
         label: currentUser.address.label || "Home",
-        recipientName: currentUser.name || "",
-        phone: currentUser.phone || "",
+        recipientName: currentUser.address.recipientName || currentUser.name || "",
+        phone: currentUser.address.phone || currentUser.phone || "",
         line1: currentUser.address.line1 || "",
         district: currentUser.address.district || "",
         province: currentUser.address.province || "",
         postalCode: currentUser.address.postalCode || "",
       },
+      // กรองเอาเฉพาะข้อมูลที่ id ไม่เท่ากับ "legacy" และป้ายชื่อ (label) ไม่ซ้ำกับตัว default ใน Profile เพื่อไม่ให้โชว์ซ้ำ
+      ...(Array.isArray(currentUser.addresses) 
+        ? currentUser.addresses.filter(addr => addr.id !== "legacy" && addr.label !== (currentUser.address.label || "Home")) 
+        : [])
     ];
+  }
+
+  if (Array.isArray(currentUser.addresses) && currentUser.addresses.length > 0) {
+    return currentUser.addresses;
   }
 
   return [];
@@ -47,9 +41,13 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage, save
     savedAddresses.length > 0 ? savedAddresses[0].id : "new"
   );
   const [newAddress, setNewAddress] = useState({
-    ...emptyNewAddress,
     recipientName: currentUser?.name || "",
     phone: currentUser?.phone || "",
+    label: "Home",
+    line1: "",
+    district: "",
+    province: "",
+    postalCode: "",
   });
   const [saveNewAddress, setSaveNewAddress] = useState(true);
 
@@ -63,6 +61,15 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage, save
   function updateNewAddress(field, value) {
     setNewAddress((current) => ({ ...current, [field]: value }));
   }
+
+  React.useEffect(() => {
+    if (savedAddresses.length > 0 && selectedAddressId !== "new") {
+      const exists = savedAddresses.some(addr => addr.id === selectedAddressId);
+      if (!exists) {
+        setSelectedAddressId(savedAddresses[0].id);
+      }
+    }
+  }, [savedAddresses, selectedAddressId]);
 
   function getShippingAddress() {
     if (selectedAddressId !== "new") {
@@ -160,7 +167,7 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage, save
                             onChange={() => setSelectedAddressId(addr.id)}
                           />
                           <span>
-                            <strong>{addr.label || "ที่อยู่จัดส่ง"}</strong>
+                            <strong>{addr.label}</strong>
                             <br />
                             <span className="text-muted small">
                               {addr.recipientName} &middot; {addr.phone}

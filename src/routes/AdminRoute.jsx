@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { getOrders, updateOrderStatus, updateOrderDetails, cancelOrder } from "../utils/orderStorage.js";
+import { getOrders, updateOrderStatus, updateOrderDetails } from "../utils/orderStorage.js";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../utils/productStorage.js";
 import {
   createAdmin,
@@ -12,7 +12,6 @@ import { canManageAdmins, isCustomer, isSuperAdmin, ROLES } from "../utils/roles
 import { money, summarizeOrderItems } from "../utils/format.js";
 import { resetStorage } from "../utils/localStorageDb.js";
 import { categories } from "../data/products.js";
-import { orderStatuses } from "../data/seedData.js";
 import OrderDetailModal from "../components/OrderDetailModal.jsx";
 
 function AdminRoute({ currentUser }) {
@@ -51,9 +50,6 @@ function AdminRoute({ currentUser }) {
   // State สำหรับหน้า Orders
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderSearch, setOrderSearch] = useState("");
-  const [cancelTargetId, setCancelTargetId] = useState(null);
-  const [cancelReasonInput, setCancelReasonInput] = useState("");
-  const [cancelError, setCancelError] = useState("");
 
   // ช่องค้นหาในหน้ารายชื่อลูกค้า
   const [customerSearch, setCustomerSearch] = useState("");
@@ -288,40 +284,6 @@ function AdminRoute({ currentUser }) {
     setSelectedOrder((current) =>
       current && current.id === orderId ? { ...current, status, tone: status === "Completed" ? "primary" : "soft" } : current
     );
-  }
-
-  function openCancelModal(orderId) {
-    setCancelTargetId(orderId);
-    setCancelReasonInput("");
-    setCancelError("");
-  }
-
-  function closeCancelModal() {
-    setCancelTargetId(null);
-    setCancelReasonInput("");
-    setCancelError("");
-  }
-
-  function handleConfirmCancel() {
-    const trimmedReason = cancelReasonInput.trim();
-    if (!trimmedReason) {
-      setCancelError("กรุณาระบุเหตุผลก่อนยกเลิกออเดอร์ค่ะ");
-      return;
-    }
-    cancelOrder(cancelTargetId, trimmedReason, currentUser);
-    refreshData();
-    setSelectedOrder((current) =>
-      current && current.id === cancelTargetId
-        ? {
-            ...current,
-            status: "Cancelled",
-            tone: "danger",
-            cancelReason: trimmedReason,
-            cancelledBy: currentUser?.name || currentUser?.email || "ไม่ทราบผู้ดำเนินการ",
-          }
-        : current
-    );
-    closeCancelModal();
   }
 
   function handleOrderDetailsSave(orderId, updates) {
@@ -868,7 +830,7 @@ function AdminRoute({ currentUser }) {
                                 <td className="text-truncate" style={{ maxWidth: "200px" }}>{summarizeOrderItems(order.items)}</td>
                                 <td className="text-end fw-bold">{money(order.total)}</td>
                                 <td className="text-center">
-                                  <span className={`badge status-${order.status.toLowerCase()}`}>
+                                  <span className={`badge rounded-pill status ${order.tone}`}>
                                     {order.status}
                                   </span>
                                 </td>
@@ -1007,42 +969,15 @@ function AdminRoute({ currentUser }) {
       {/* Modal ดูรายละเอียดคำสั่งซื้อ */}
       {selectedOrder && (
         <OrderDetailModal
+          key={selectedOrder.id}
           order={selectedOrder}
+          customerName={getCustomerName(selectedOrder.userId)}
+          editable
           onClose={() => setSelectedOrder(null)}
-          onStatusChange={handleOrderStatusChange}
-          onCancelClick={openCancelModal}
-          onSaveDetails={handleOrderDetailsSave}
-          editableStatuses={editableStatuses}
+          onSaveAddress={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
+          onSaveTracking={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
+          onComplete={() => handleOrderStatusChange(selectedOrder.id, "Completed")}
         />
-      )}
-
-      {/* Modal ป๊อปอัปกรอกเหตุผลการยกเลิกออเดอร์ */}
-      {cancelTargetId && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-danger text-white">
-                <h5 className="modal-title">🚫 ระบุเหตุผลการยกเลิกออเดอร์</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={closeCancelModal}></button>
-              </div>
-              <div className="modal-body">
-                {cancelError && <div className="alert alert-danger py-2 small">{cancelError}</div>}
-                <p className="text-muted small mb-2">กรุณากรอกเหตุผลที่ต้องยกเลิกคำสั่งซื้อนี้ ระบบจะบันทึกข้อมูลและส่งแจ้งไปยังฝั่งลูกค้าค่ะ</p>
-                <textarea
-                  className="form-control"
-                  rows="3"
-                  placeholder="เช่น สินค้าหมดคลังชั่วคราว, ลูกค้าแจ้งขอยกเลิกผ่านแชท..."
-                  value={cancelReasonInput}
-                  onChange={(e) => setCancelReasonInput(e.target.value)}
-                />
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-light border" onClick={closeCancelModal}>ปิดหน้าต่าง</button>
-                <button type="button" className="btn btn-danger" onClick={handleConfirmCancel}>ยืนยันการยกเลิก</button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </section>
   );
