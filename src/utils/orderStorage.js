@@ -20,14 +20,6 @@ export function getOrdersByUser(userId) {
   return getOrders().filter((order) => order.userId === userId);
 }
 
-// สร้างเลขพัสดุอัตโนมัติทันทีที่ได้ออเดอร์ (ก่อนแอดมินจะเลือกขนส่งจริง)
-// รูปแบบ: BH + วันที่ (YYMMDD) + เลขสุ่ม 6 หลัก เช่น BH2607180F3K21
-function generateTrackingNumber() {
-  const datePart = new Date().toISOString().slice(2, 10).replace(/-/g, "");
-  const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `BH${datePart}${randomPart}`;
-}
-
 export function createOrder({ user, cartItems, paymentMethod = "Cash on Delivery", shippingAddress }) {
   const orderItems = cartItems.map((item) => ({
     productId: item.productId,
@@ -51,8 +43,8 @@ export function createOrder({ user, cartItems, paymentMethod = "Cash on Delivery
     shippingAddress: shippingAddress || user?.address || null,
     createdAt: now,
     statusUpdatedAt: now,
-    // ได้เลขพัสดุทันทีตอนสั่งซื้อ ส่วนขนส่งจริง (carrier) แอดมินค่อยยืนยัน/แก้ไขทีหลังได้
-    trackingNumber: generateTrackingNumber(),
+    // ยังไม่มีเลขพัสดุตอนสร้างออเดอร์ แอดมินเป็นคนกรอกเลขพัสดุ/เลือกขนส่งจริงทีหลัง
+    trackingNumber: "",
     carrier: "",
   };
   const nextOrders = [order, ...getOrders()];

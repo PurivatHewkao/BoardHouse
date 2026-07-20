@@ -21,28 +21,54 @@ const emptyAddress = {
 
 // ใช้ทั้งฝั่ง Admin (editable=true แก้ไขได้) และฝั่งลูกค้า (editable=false ดูอย่างเดียว)
 // สำคัญ: ให้ใส่ key={order.id} ตอนเรียกใช้คอมโพเนนต์นี้ เพื่อรีเซ็ต state เวลาเปลี่ยนออเดอร์
-function OrderDetailModal({ order, customerName, onClose, editable = false, onSave }) {
+function OrderDetailModal({
+  order,
+  customerName,
+  onClose,
+  editable = false,
+  onSaveAddress,
+  onSaveTracking,
+  onComplete,
+}) {
   const [addressForm, setAddressForm] = useState({ ...emptyAddress, ...(order?.shippingAddress || {}) });
   const [carrier, setCarrier] = useState(order?.carrier || carrierOptions[0]);
   const [trackingNumber, setTrackingNumber] = useState(order?.trackingNumber || "");
   const [savedMessage, setSavedMessage] = useState("");
+  const [trackingSavedMessage, setTrackingSavedMessage] = useState("");
 
   if (!order) {
     return null;
   }
 
+  // ออเดอร์ที่จบแล้ว (Completed/Cancelled) แก้ไขข้อมูลขนส่งหรือกดสถานะเพิ่มไม่ได้อีก
+  const isLocked = order.status === "Completed" || order.status === "Cancelled";
+
   function updateAddressField(field, value) {
     setAddressForm((current) => ({ ...current, [field]: value }));
   }
 
-  function handleSave() {
-    onSave?.({
-      shippingAddress: { ...addressForm },
-      trackingNumber: trackingNumber.trim(),
-      carrier: trackingNumber.trim() ? carrier : "",
-    });
-    setSavedMessage("บันทึกข้อมูลเรียบร้อยแล้ว");
+  function handleSaveAddress() {
+    onSaveAddress?.({ shippingAddress: { ...addressForm } });
+    setSavedMessage("บันทึกที่อยู่จัดส่งเรียบร้อยแล้ว");
     window.setTimeout(() => setSavedMessage(""), 2500);
+  }
+
+  // บันทึกผู้ให้บริการขนส่ง + เลขพัสดุแยกจากที่อยู่ — ถ้ากรอกเลขพัสดุแล้วให้เปลี่ยนสถานะเป็น "In Transit" อัตโนมัติ
+  // (flow: สั่งซื้อ = Preparing Shipment -> กรอก tracking = In Transit -> กด Complete = Completed)
+  function handleSaveTracking() {
+    const trimmed = trackingNumber.trim();
+    onSaveTracking?.({
+      trackingNumber: trimmed,
+      carrier: trimmed ? carrier : "",
+      ...(trimmed ? { status: "In Transit", tone: "soft" } : {}),
+    });
+    setTrackingSavedMessage("บันทึกข้อมูลขนส่งเรียบร้อยแล้ว");
+    window.setTimeout(() => setTrackingSavedMessage(""), 2500);
+  }
+
+  function handleComplete() {
+    if (!confirm("ยืนยันปิดออเดอร์นี้เป็นสถานะจัดส่งสำเร็จใช่ไหม?")) return;
+    onComplete?.();
   }
 
   const displayAddress = editable ? addressForm : order.shippingAddress;
@@ -121,34 +147,50 @@ function OrderDetailModal({ order, customerName, onClose, editable = false, onSa
 
           <h3 className="h6 text-muted text-uppercase mb-2">การจัดส่ง / เลขพัสดุ</h3>
           {editable ? (
-            <div className="row g-3 mb-4">
-              <div className="col-md-6">
-                <label className="form-label">
-                  ผู้ให้บริการขนส่ง
-                  <select
-                    className="form-select mt-2"
-                    value={carrier}
-                    onChange={(event) => setCarrier(event.target.value)}
+            <div className="mb-4">
+              <div className="row g-3 align-items-end">
+                <div className="col-md-5">
+                  <label className="form-label">
+                    ผู้ให้บริการขนส่ง
+                    <select
+                      className="form-select mt-2"
+                      value={carrier}
+                      onChange={(event) => setCarrier(event.target.value)}
+                      disabled={isLocked}
+                    >
+                      {carrierOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div className="col-md-5">
+                  <label className="form-label">
+                    เลขพัสดุ (Tracking Number)
+                    <input
+                      className="form-control mt-2"
+                      placeholder="เช่น TH1234567890"
+                      value={trackingNumber}
+                      onChange={(event) => setTrackingNumber(event.target.value)}
+                      disabled={isLocked}
+                    />
+                  </label>
+                </div>
+                {/* ปุ่มบันทึกแยกจากรายละเอียดอื่น — กรอกเลขพัสดุแล้วกดปุ่มนี้จะเปลี่ยนสถานะเป็น "เตรียมส่ง" ให้อัตโนมัติ */}
+                <div className="col-md-2 d-grid">
+                  <button
+                    type="button"
+                    className="btn btn-boardhouse"
+                    onClick={handleSaveTracking}
+                    disabled={isLocked}
                   >
-                    {carrierOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    บันทึกขนส่ง
+                  </button>
+                </div>
               </div>
-              <div className="col-md-6">
-                <label className="form-label">
-                  เลขพัสดุ (Tracking Number)
-                  <input
-                    className="form-control mt-2"
-                    placeholder="เช่น TH1234567890"
-                    value={trackingNumber}
-                    onChange={(event) => setTrackingNumber(event.target.value)}
-                  />
-                </label>
-              </div>
+              {trackingSavedMessage && <p className="text-success small mb-0 mt-2">{trackingSavedMessage}</p>}
             </div>
           ) : (
             <>
@@ -254,9 +296,18 @@ function OrderDetailModal({ order, customerName, onClose, editable = false, onSa
           )}
 
           {editable && (
-            <div className="d-flex align-items-center gap-3 mt-4 pt-3 border-top">
-              <button type="button" className="btn btn-boardhouse" onClick={handleSave}>
-                บันทึกการเปลี่ยนแปลง
+            <div className="d-flex flex-wrap align-items-center gap-3 mt-4 pt-3 border-top">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleSaveAddress} disabled={isLocked}>
+                บันทึกที่อยู่จัดส่ง
+              </button>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={handleComplete}
+                disabled={isLocked || !order.trackingNumber}
+                title={!order.trackingNumber ? "ต้องบันทึกเลขพัสดุก่อนถึงจะปิดออเดอร์ได้" : undefined}
+              >
+                ✅ จัดส่งสำเร็จ (Complete)
               </button>
               {savedMessage && <span className="text-success small">{savedMessage}</span>}
             </div>

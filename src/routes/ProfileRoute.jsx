@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { changePassword, updateProfile } from "../utils/userStorage.js";
 import { getAccessLabel } from "../utils/roles.js";
 
+// เพิ่มโครงสร้างข้อมูลให้ตรงกับหน้า Payment (Checkout)
 const emptyAddress = {
   label: "Home",
+  recipientName: "",
+  phone: "",
   line1: "",
   district: "",
   province: "",
@@ -40,17 +43,22 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
     setAddress((current) => ({ ...current, [field]: value }));
   }
 
-  // เว้นที่อยู่ทั้งก้อนไว้ได้ แต่ถ้ากรอกแล้วต้องกรอกให้ครบเพราะ Checkout ใช้ต่อ
+  // ปรับการตรวจสอบข้อมูลให้รองรับฟิลด์ใหม่ (ต้องกรอกครบทั้ง 6 ฟิลด์ย่อย หรือปล่อยว่างทั้งหมด)
   function validateAddress() {
-    const filled = [address.line1, address.district, address.province, address.postalCode].filter(
-      (value) => value.trim()
-    );
+    const filled = [
+      address.recipientName,
+      address.phone,
+      address.line1, 
+      address.district, 
+      address.province, 
+      address.postalCode
+    ].filter((value) => value && value.trim());
 
-    if (filled.length === 0 || filled.length === 4) {
+    if (filled.length === 0 || filled.length === 6) {
       return null;
     }
 
-    return "Please complete the full address, or leave every address field blank.";
+    return "Please complete the full address, including recipient name and phone number, or leave every address field blank.";
   }
 
   function handleSaveProfile() {
@@ -152,6 +160,31 @@ function ProfileRoute({ currentUser, setCurrentUser, setPage }) {
                 onChange={(event) => updateAddress("label", event.target.value)}
               />
             </label>
+
+            {/* เพิ่มช่อง Recipient Name และ Phone Number ในแถวเดียวกัน */}
+            <div className="row g-3">
+              <div className="col-md-6">
+                <label className="form-label w-100">
+                  Recipient Name
+                  <input
+                    className="form-control form-control-lg mt-2"
+                    value={address.recipientName || ""}
+                    onChange={(event) => updateAddress("recipientName", event.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label w-100">
+                  Phone Number
+                  <input
+                    className="form-control form-control-lg mt-2"
+                    value={address.phone || ""}
+                    onChange={(event) => updateAddress("phone", event.target.value)}
+                  />
+                </label>
+              </div>
+            </div>
+
             <label className="form-label">
               Address
               <input
