@@ -1,6 +1,8 @@
 import { products as defaultProducts } from "../data/seedData.js";
 import { readStorage, storageKeys, writeStorage } from "./localStorageDb.js";
 
+export const productsUpdatedEvent = "boardhouse:products-updated";
+
 // ดึงรายการสินค้าทั้งหมด
 export function getProducts() {
   const products = readStorage(storageKeys.products, defaultProducts);
@@ -10,6 +12,12 @@ export function getProducts() {
 // บันทึกรายการสินค้าทั้งหมดลง Storage
 export function saveProducts(products) {
   writeStorage(storageKeys.products, products);
+
+  // storage event จะไม่ทำงานใน tab เดียวกัน จึงส่ง event ภายในแอปเพื่อให้
+  // หน้าร้านและหน้า Admin เห็นสินค้า/stock ชุดเดียวกันทันที
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(productsUpdatedEvent, { detail: products }));
+  }
 }
 
 // เพิ่มสินค้าชิ้นใหม่ (รองรับการแปลงค่าฟิลด์ตัวกรองใหม่ให้เป็นตัวเลขเสมอ และเก็บรูปภาพแบบ Base64 หรือ File Path)

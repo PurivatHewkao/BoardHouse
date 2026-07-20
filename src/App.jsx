@@ -17,7 +17,12 @@ import {
   updateCartQuantity,
 } from "./utils/cartStorage.js";
 import { createOrder } from "./utils/orderStorage.js";
-import { getProducts, reduceProductStock, saveProducts } from "./utils/productStorage.js";
+import {
+  getProducts,
+  productsUpdatedEvent,
+  reduceProductStock,
+  saveProducts,
+} from "./utils/productStorage.js";
 import { addAddressToUser, getCurrentUser, logoutUser, setCurrentUser } from "./utils/userStorage.js";
 import { canAccessAdmin } from "./utils/roles.js";
 
@@ -30,6 +35,15 @@ function App() {
   useEffect(() => {
     saveCart(cart);
   }, [cart]);
+
+  useEffect(() => {
+    function syncProducts(event) {
+      setProducts(Array.isArray(event.detail) ? event.detail : getProducts());
+    }
+
+    window.addEventListener(productsUpdatedEvent, syncProducts);
+    return () => window.removeEventListener(productsUpdatedEvent, syncProducts);
+  }, []);
 
   function handleCurrentUser(user) {
     updateCurrentUser(user);
@@ -68,21 +82,20 @@ function App() {
 
   function addToCart(productId) {
     const product = products.find((item) => item.id === productId);
+    const cartItem = cart.find((item) => item.productId === productId);
 
     if (!product || product.stock <= 0) {
-      alert("This product is out of stock.");
+      alert("สินค้านี้หมดสต็อกแล้ว");
+      return;
+    }
+
+    if ((cartItem?.quantity || 0) >= product.stock) {
+      alert(`สินค้า "${product.name}" ในตะกร้าครบตามจำนวนที่มีในสต็อกแล้ว`);
       return;
     }
 
     setCart((items) => addCartItem(items, productId, products));
-
-    const nextProducts = products.map((item) =>
-      item.id === productId ? { ...item, stock: Math.max(0, item.stock - 1) } : item
-    );
-    saveProducts(nextProducts);
-    setProducts(nextProducts);
-
-    alert(`Added "${product.name}" to your cart.`);
+    alert(`เพิ่ม "${product.name}" ลงตะกร้าแล้ว`);
   }
 
   function changeQuantity(productId, amount) {
@@ -107,9 +120,9 @@ function App() {
     }
 
     createOrder({ user: currentUser, cartItems, paymentMethod, shippingAddress });
+    // ตัด stock เพียงครั้งเดียวเมื่อยืนยันคำสั่งซื้อสำเร็จ
     const nextProducts = reduceProductStock(products, cartItems);
     saveProducts(nextProducts);
-    setProducts(nextProducts);
     setCart(clearCart());
     setPage("Orders");
   }

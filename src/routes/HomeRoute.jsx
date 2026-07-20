@@ -15,33 +15,27 @@ function HomeRoute({ products, addToCart }) {
   
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // 🔍 ฟังก์ชันจัดหมวดหมู่และกรองข้อมูลขั้นสูง (ใช้ useMemo เพื่อประสิทธิภาพที่ดี)
+  // 🔍 ฟังก์ชันจัดหมวดหมู่และกรองข้อมูลขั้นสูง
   const visibleProducts = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("th-TH");
+
     return products.filter((product) => {
-      // 1. กรองตามประเภทเกม
       const matchesCategory = category === "All" || product.category === category;
-      
-      // 2. กรองตามชื่อที่พิมพ์ค้นหา
-      const matchesQuery = product.name.toLowerCase().includes(query.toLowerCase());
-      
-      // 3. กรองตามอายุขั้นต่ำ (ระบบ >= ตัวเลข)
+      const searchableText = `${product.name || ""} ${product.category || ""}`.toLocaleLowerCase("th-TH");
+      const matchesQuery = !normalizedQuery || searchableText.includes(normalizedQuery);
       const productAge = Number(product.minAge || 0); 
       const matchesAge = selectedAge === "All" || productAge >= Number(selectedAge);
       
-      // 4. กรองตามจำนวนผู้เล่น (เช็กว่าอยู่ในช่วง minPlayers ถึง maxPlayers ไหม)
       let matchesPlayers = true;
       if (selectedPlayers !== "All") {
         const minP = Number(product.minPlayers || 0);
         const maxP = Number(product.maxPlayers || 99);
         
         if (selectedPlayers === "2") {
-          // ถ้าเลือก "เล่น 2 คน" เกมนั้นต้องรองรับผู้เล่น 2 คน
           matchesPlayers = minP <= 2 && maxP >= 2;
         } else if (selectedPlayers === "3-4") {
-          // ถ้าเลือก "3-4 คน" เกมนั้นต้องสามารถเล่นในช่วง 3 หรือ 4 คนได้
           matchesPlayers = (minP <= 3 && maxP >= 3) || (minP <= 4 && maxP >= 4);
         } else if (selectedPlayers === "5+") {
-          // ถ้าเลือก "5 คนขึ้นไป" เกมนั้นต้องรองรับผู้เล่นตั้งแต่ 5 คนขึ้นไป
           matchesPlayers = maxP >= 5;
         }
       }
@@ -50,7 +44,6 @@ function HomeRoute({ products, addToCart }) {
     });
   }, [category, query, selectedAge, selectedPlayers, products]);
 
-  // ตัวเลือกปุ่มตัวกรองอายุ (ตามหน้ากล่องเกม)
   const ageFilters = [
     { label: "ทุกช่วงอายุ", value: "All" },
     { label: "3 ปีขึ้นไป", value: 3 },
@@ -59,7 +52,6 @@ function HomeRoute({ products, addToCart }) {
     { label: "14 ปีขึ้นไป", value: 14 }
   ];
 
-  // ตัวเลือกปุ่มตัวกรองจำนวนผู้เล่น
   const playerFilters = [
     { label: "ไม่จำกัด", value: "All" },
     { label: "สำหรับ 2 คน", value: "2" },
@@ -104,7 +96,7 @@ function HomeRoute({ products, addToCart }) {
                   className="form-control border-start-0"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="ค้นหาบอร์ดเกม..."
+                  placeholder="ค้นหาชื่อเกมหรือหมวดหมู่..."
                 />
               </label>
             </div>
@@ -141,7 +133,7 @@ function HomeRoute({ products, addToCart }) {
             </div>
           </div>
 
-          {/* 👥 แถวที่ 3 (เพิ่มใหม่): ปุ่มกรองตามจำนวนผู้เล่น */}
+          {/* 👥 แถวที่ 3: ปุ่มกรองตามจำนวนผู้เล่น */}
           <div className="row mb-5">
             <div className="col-12 d-flex flex-wrap gap-2 align-items-center">
               <span className="text-muted me-2 small fw-bold" style={{ width: "100px" }}>จำนวนผู้เล่น:</span>
@@ -198,7 +190,6 @@ function HomeRoute({ products, addToCart }) {
                       <div className="d-flex flex-wrap gap-2 mb-2">
                         <span className="badge bg-brand">{selectedProduct.category || "Board Game"}</span>
                         <span className="badge bg-secondary">อายุ {selectedProduct.minAge || "ทั่วไป"}+ ปี</span>
-                        {/* 👥 แสดงจำนวนผู้เล่นในหน้าป๊อปอัป */}
                         <span className="badge bg-dark">👥 {selectedProduct.minPlayers}-{selectedProduct.maxPlayers} คน</span>
                       </div>
                       <h2 className="h3 fw-bold mb-3">{selectedProduct.name}</h2>
@@ -238,43 +229,85 @@ function HomeRoute({ products, addToCart }) {
   );
 }
 
+// 🛠️ แก้ไขส่วนนี้แบบดักทุกทางเพื่อไม่ให้รูปล้นมาทับตัวหนังสือเด็ดขาด
 function ProductCard({ product, addToCart, onViewProduct }) {
   return (
-    <article className="card product-card h-100 shadow-sm overflow-hidden">
-      <div className="product-image" style={{ height: "220px", width: "100%", background: "#f8f9fa" }}>
+    <article className="card product-card h-100 shadow-sm border-0 d-flex flex-column" style={{ overflow: "hidden" }}>
+      
+      {/* 🖼️ แก้กรอบรูปภาพ: บังคับความสูงตายตัว 200px และซ่อนทุกอย่างที่ล้นออกนอกกล่อง (overflow: "hidden") */}
+      <div 
+        className="product-image-container position-relative w-100" 
+        style={{ 
+          height: "200px", 
+          maxHeight: "200px",
+          overflow: "hidden", 
+          background: "#f8f9fa" 
+        }}
+      >
         <img 
           src={product.image || "https://placehold.co/300x200?text=No+Image"} 
           alt={product.name} 
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          style={{ 
+            width: "100%", 
+            height: "100%", 
+            maxWidth: "100%",
+            maxHeight: "100%",
+            display: "block",
+            objectFit: "cover", 
+            objectPosition: "center" 
+          }}
         />
       </div>
       
-      <div className="card-body d-flex flex-column">
-        <div className="d-flex justify-content-between gap-2 mb-3">
-          <div>
-            <h2 className="h3 mb-1" style={{ fontSize: "1.1rem", fontWeight: "600" }}>{product.name}</h2>
-            <p className="price mb-0 text-brand fw-bold">{money(product.price)}</p>
+      {/* 📝 ส่วนเนื้อหาและตัวหนังสือด้านล่าง */}
+      <div className="card-body d-flex flex-column p-3 bg-white" style={{ flexGrow: 1 }}>
+        
+        {/* ประเภทเกม */}
+        <div className="mb-2">
+          <span className="badge rounded-pill bg-light border text-dark" style={{ fontSize: "0.75rem" }}>
+            {product.category || "General"}
+          </span>
+        </div>
+
+        {/* ชื่อเกม: มี text-truncate บังคับให้อยู่บรรทัดเดียวและตัดไข่ปลา ป้องกันชื่อยาวดันโครงสร้างพัง */}
+        <h3 
+          className="h6 mb-2 text-dark text-truncate fw-bold" 
+          style={{ fontSize: "1.02rem", lineHeight: "1.4" }}
+          title={product.name}
+        >
+          {product.name}
+        </h3>
+
+        {/* ข้อมูลรายละเอียดจำกัดเนื้อหา */}
+        <div className="d-flex justify-content-between align-items-center small text-muted mb-3">
+          <span>👥 {product.minPlayers}-{product.maxPlayers} คน</span>
+          <span className={product.stock > 0 ? "text-success" : "text-danger"}>
+            {product.stock > 0 ? `คงเหลือ ${product.stock} ชิ้น` : "สินค้าหมด"}
+          </span>
+        </div>
+
+        {/* ปุ่มและราคาจะถูกดันให้อยู่แนบด้านล่างสุดเสมอ */}
+        <div className="mt-auto">
+          <div className="mb-3">
+            <p className="price h5 mb-0 text-brand fw-bold">{money(product.price)}</p>
           </div>
-          <div className="text-end text-muted small" style={{ minWidth: "85px" }}>
-            <span className="badge rounded-pill tag mb-1 bg-light border text-dark">{product.category || "General"}</span>
-            {/* 👥 แสดงจำนวนผู้เล่นบนการ์ดใบเล็ก */}
-            <div className="small text-muted mb-1">👥 {product.minPlayers}-{product.maxPlayers} คน</div>
-            <div>Stock: {product.stock}</div>
+          
+          <div className="d-flex gap-2">
+            <button className="btn btn-light border flex-fill btn-sm py-2" type="button" onClick={() => onViewProduct(product)}>
+              รายละเอียด
+            </button>
+            <button
+              className="btn btn-boardhouse flex-fill btn-sm py-2 text-white"
+              type="button"
+              disabled={product.stock <= 0}
+              onClick={() => addToCart(product.id)}
+              style={product.stock > 0 ? {} : { backgroundColor: "#ccc", border: "none" }}
+            >
+              {product.stock > 0 ? "ใส่ตะกร้า" : "หมด"}
+            </button>
           </div>
         </div>
-        <div className="d-flex gap-2 mt-auto">
-          <button className="btn btn-light border flex-fill" type="button" onClick={() => onViewProduct(product)}>
-            รายละเอียด
-          </button>
-          <button
-            className="btn btn-boardhouse flex-fill"
-            type="button"
-            disabled={product.stock <= 0}
-            onClick={() => addToCart(product.id)}
-          >
-            {product.stock > 0 ? "ใส่ตะกร้า" : "สินค้าหมด"}
-          </button>
-        </div>
+
       </div>
     </article>
   );

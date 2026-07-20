@@ -11,7 +11,6 @@ import {
 import { canManageAdmins, isCustomer, isSuperAdmin, ROLES } from "../utils/roles.js";
 import { money, summarizeOrderItems } from "../utils/format.js";
 import { resetStorage } from "../utils/localStorageDb.js";
-// 💡 ดึงประเภทหมวดหมู่เดียวกับหน้าโฮมมาใช้ (ถ้าดึงจากไฟล์นี้ไม่ได้ ให้เปลี่ยนพาธให้ตรงกับโปรเจกต์หนูนะคะ)
 import { categories } from "../data/products.js";
 import { orderStatuses } from "../data/seedData.js";
 import OrderDetailModal from "../components/OrderDetailModal.jsx";
@@ -30,32 +29,36 @@ function AdminRoute({ currentUser }) {
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newStock, setNewStock] = useState("");
-  const [newImage, setNewImage] = useState(""); // ตัวนี้จะเก็บได้ทั้ง URL และ Base64 String ค่ะ
+  const [newImage, setNewImage] = useState(""); 
   const [newDescription, setNewDescription] = useState("");
   
-  // 💡 เพิ่ม State สำหรับตัวกรองอายุและจำนวนผู้เล่น
+  // State สำหรับตัวกรองอายุและจำนวนผู้เล่น
   const [newMinAge, setNewMinAge] = useState(8);
   const [newMinPlayers, setNewMinPlayers] = useState(2);
   const [newMaxPlayers, setNewMaxPlayers] = useState(4);
 
-  // 💡 เพิ่ม State สำหรับเลือกประเภทสินค้า (เริ่มต้นเลือกประเภทแรกที่ไม่ใช่ "All")
+  // State สำหรับเลือกประเภทสินค้า
   const [newCategory, setNewCategory] = useState(() => {
     const defaultCat = categories.find(cat => cat !== "All");
     return defaultCat || "General";
   });
   const [editingId, setEditingId] = useState(null);
 
-  // State สำหรับหน้า Orders (ดูรายละเอียด + เปลี่ยนสถานะ order)
+  // State สำหรับค้นหาและกรองหมวดหมู่ในตารางสินค้า
+  const [productSearch, setProductSearch] = useState("");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("All");
+
+  // State สำหรับหน้า Orders
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderSearch, setOrderSearch] = useState("");
   const [cancelTargetId, setCancelTargetId] = useState(null);
   const [cancelReasonInput, setCancelReasonInput] = useState("");
   const [cancelError, setCancelError] = useState("");
 
-  // 🔎 ช่องค้นหาในหน้ารายชื่อลูกค้า
+  // ช่องค้นหาในหน้ารายชื่อลูกค้า
   const [customerSearch, setCustomerSearch] = useState("");
 
-  // State หน้า Admins (เฉพาะ super admin) — ฟอร์มเพิ่ม admin ใหม่ + ช่องเลือกลูกค้าที่จะเลื่อนขั้น
+  // State หน้า Admins
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
@@ -67,12 +70,9 @@ function AdminRoute({ currentUser }) {
   const customers = users.filter(isCustomer);
   const revenue = orders.reduce((sum, order) => sum + order.total, 0);
 
-  // super admin เท่านั้นที่เห็นแท็บ Admins และสั่งงานในนั้นได้
   const canManage = canManageAdmins(currentUser);
   const admins = users.filter((user) => user.role === ROLES.ADMIN || isSuperAdmin(user));
 
-  // 💡 รวมสถิติการใช้งานของลูกค้าแต่ละคน โดยจับคู่ออเดอร์ (order.userId) กับผู้ใช้ (user.id)
-  //    ได้ออกมาเป็น จำนวนออเดอร์ / ยอดซื้อรวม / วันที่สั่งซื้อล่าสุด ของลูกค้าทุกคน
   const customersWithStats = customers.map((customer) => {
     const customerOrders = orders.filter((order) => order.userId === customer.id);
     const totalSpent = customerOrders.reduce((sum, order) => sum + order.total, 0);
@@ -88,10 +88,8 @@ function AdminRoute({ currentUser }) {
     };
   });
 
-  // ลูกค้าที่ "เข้ามาใช้บริการจริง" = มีออเดอร์อย่างน้อย 1 รายการ
   const activeCustomerCount = customersWithStats.filter((c) => c.orderCount > 0).length;
 
-  // กรองรายชื่อตามคำค้น (ชื่อ / อีเมล / เบอร์โทร)
   const filteredCustomers = customersWithStats.filter((customer) => {
     const keyword = customerSearch.trim().toLowerCase();
     if (!keyword) return true;
@@ -102,7 +100,6 @@ function AdminRoute({ currentUser }) {
     );
   });
 
-  // ออเดอร์ล่าสุด 5 รายการ (ใช้โชว์บนแดชบอร์ด)
   const recentOrders = [...orders]
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 5)
@@ -111,7 +108,6 @@ function AdminRoute({ currentUser }) {
       customerName: users.find((user) => user.id === order.userId)?.name || "ผู้เยี่ยมชม",
     }));
 
-  // ลูกค้าที่ซื้อเยอะสุด 5 อันดับ (ใช้โชว์บนแดชบอร์ด)
   const topCustomers = [...customersWithStats]
     .filter((customer) => customer.orderCount > 0)
     .sort((a, b) => b.totalSpent - a.totalSpent)
@@ -124,7 +120,6 @@ function AdminRoute({ currentUser }) {
     { label: "Total Sales", value: money(revenue), icon: "cash" },
   ];
 
-  // แปลงชื่อลูกค้าเป็นอักษรย่อ ใช้ทำไอคอนวงกลม avatar
   function initials(name) {
     return name
       .split(" ")
@@ -147,14 +142,11 @@ function AdminRoute({ currentUser }) {
     window.location.reload();
   }
 
-  // ทุก action ของหน้า Admins วิ่งผ่าน helper ใน userStorage.js ที่เช็คสิทธิ์ซ้ำอีกชั้น
-  // UI ซ่อนแท็บให้แล้วก็จริง แต่ helper ไม่เชื่อ UI
   function applyAdminResult(result) {
     if (!result.ok) {
       setAdminError(result.message);
       return false;
     }
-
     setAdminError("");
     refreshData();
     setMessage(result.message);
@@ -170,7 +162,6 @@ function AdminRoute({ currentUser }) {
       password: adminPassword,
       phone: adminPhone,
     });
-
     if (applyAdminResult(result)) {
       setAdminName("");
       setAdminEmail("");
@@ -181,46 +172,34 @@ function AdminRoute({ currentUser }) {
 
   function handlePromote(e) {
     e.preventDefault();
-
     if (!promoteId) {
       setAdminError("กรุณาเลือกลูกค้าที่ต้องการเลื่อนขั้น");
       return;
     }
-
     if (applyAdminResult(promoteToAdmin(currentUser, Number(promoteId)))) {
       setPromoteId("");
     }
   }
 
   function handleDemote(user) {
-    if (!confirm(`ลดขั้น "${user.name}" กลับเป็นลูกค้าใช่ไหม?`)) {
-      return;
-    }
-
+    if (!confirm(`ลดขั้น "${user.name}" กลับเป็นลูกค้าใช่ไหม?`)) return;
     applyAdminResult(demoteToCustomer(currentUser, user.id));
   }
 
   function handleDeleteAdmin(user) {
-    if (!confirm(`ลบบัญชี admin "${user.name}" ถาวรใช่ไหม?`)) {
-      return;
-    }
-
+    if (!confirm(`ลบบัญชี admin "${user.name}" ถาวรใช่ไหม?`)) return;
     applyAdminResult(deleteAdmin(currentUser, user.id));
   }
 
-  // 🖼️ ฟังก์ชันแปลง "ไฟล์รูปภาพในเครื่อง" ให้เป็น Base64 String เพื่อเก็บใน localStorage
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // จำกัดขนาดไฟล์ที่ 1.5MB เพื่อไม่ให้เกินโควต้าสูงสุดของ localStorage (5MB)
       if (file.size > 1.5 * 1024 * 1024) {
-        alert("ไฟล์ภาพมีขนาดใหญ่เกินไปค่ะ (ไม่ควรเกิน 1.5MB) เพื่อป้องกันพื้นที่จัดเก็บข้อมูลในเบราว์เซอร์เต็ม");
+        alert("ไฟล์ภาพมีขนาดใหญ่เกินไปค่ะ (ไม่ควรเกิน 1.5MB)");
         return;
       }
-
       const reader = new FileReader();
       reader.onloadend = () => {
-        // เมื่อแปลงเสร็จ จะได้ Base64 String แล้วนำไปเก็บไว้ใน State ของรูปภาพ
         setNewImage(reader.result);
       };
       reader.readAsDataURL(file);
@@ -233,18 +212,11 @@ function AdminRoute({ currentUser }) {
       alert("กรุณากรอกข้อมูลหลักให้ครบถ้วน (ชื่อ, ราคา, คลัง)");
       return;
     }
-
-    // 🛑 ดักจับป้องกันราคาและสต็อกสินค้าติดลบ
-    if (Number(newPrice) < 0) {
-      alert("ราคาสินค้าต้องไม่ติดลบนะคะ!");
-      return;
-    }
-    if (Number(newStock) < 0) {
-      alert("จำนวนสินค้าในสต็อกต้องไม่ติดลบนะคะ!");
+    if (Number(newPrice) < 0 || Number(newStock) < 0) {
+      alert("ราคาและจำนวนสินค้าในสต็อกต้องไม่ติดลบนะคะ!");
       return;
     }
 
-    // 💡 แพ็กข้อมูลส่งเข้าระบบ รวมถึงหมวดหมู่, ตัวกรองอายุ และตัวกรองจำนวนผู้เล่นแล้ว!
     const itemData = {
       name: newName,
       price: Number(newPrice),
@@ -266,7 +238,7 @@ function AdminRoute({ currentUser }) {
     
     refreshData();
     clearForm();
-    alert("บันทึกข้อมูลสินค้าและเงื่อนไขตัวกรองเรียบร้อยแล้วค่ะ!");
+    alert("บันทึกข้อมูลสินค้าและเงื่อนไขเรียบร้อยแล้วค่ะ!");
   }
 
   function handleEditClick(product) {
@@ -276,10 +248,7 @@ function AdminRoute({ currentUser }) {
     setNewStock(product.stock);
     setNewImage(product.image || "");
     setNewDescription(product.description || "");
-    // ดึงประเภทเดิมของสินค้าชิ้นนั้นขึ้นมาแสดงใน Dropdown ค้างไว้
     setNewCategory(product.category || categories.find(cat => cat !== "All") || "General");
-    
-    // 💡 ดึงค่าตัวกรองเดิมมาแสดงใน Form ถ้าไม่มีข้อมูลดั้งเดิมจะใช้ค่าเริ่มต้น (8, 2, 4)
     setNewMinAge(product.minAge !== undefined ? product.minAge : 8);
     setNewMinPlayers(product.minPlayers !== undefined ? product.minPlayers : 2);
     setNewMaxPlayers(product.maxPlayers !== undefined ? product.maxPlayers : 4);
@@ -304,7 +273,6 @@ function AdminRoute({ currentUser }) {
     setNewMinPlayers(2);
     setNewMaxPlayers(4);
 
-    // รีเซ็ตค่าในช่อง Input File บนหน้าเว็บด้วย
     const fileInput = document.getElementById("localImageUpload");
     if (fileInput) fileInput.value = "";
   }
@@ -322,7 +290,6 @@ function AdminRoute({ currentUser }) {
     );
   }
 
-  // ยกเลิกออเดอร์ — เปิดฟอร์มให้กรอกเหตุผล (แทนการใช้ prompt) และบันทึกด้วยว่าแอดมินคนไหนเป็นคนยกเลิก
   function openCancelModal(orderId) {
     setCancelTargetId(orderId);
     setCancelReasonInput("");
@@ -363,15 +330,18 @@ function AdminRoute({ currentUser }) {
     setSelectedOrder((current) => (current && current.id === orderId ? { ...current, ...updates } : current));
   }
 
-  // ตัวเลือกสถานะที่แอดมินเลือกเองได้ผ่าน dropdown — ตัด "Paid" ออก (เป็นสถานะเริ่มต้นอัตโนมัติ ไม่ให้เลือกย้อนกลับ)
-  // และตัด "Cancelled" ออก (ย้ายไปเป็นปุ่มแยกที่ต้องใส่เหตุผล)
-  const editableStatuses = orderStatuses.filter((status) => status !== "Paid" && status !== "Cancelled");
+  // ตัวกรองสินค้า Real-time สำหรับหน้าตาราง
+  const filteredProducts = products.filter((product) => {
+    const normalizedSearch = productSearch.trim().toLocaleLowerCase("th-TH");
+    const searchableText = `${product.name || ""} ${product.category || ""}`.toLocaleLowerCase("th-TH");
+    const matchesSearch = !normalizedSearch || searchableText.includes(normalizedSearch);
+    const matchesCategory = selectedCategoryFilter === "All" || product.category === selectedCategoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   const filteredOrders = orders.filter((order) => {
     const query = orderSearch.trim().toLowerCase();
-    if (!query) {
-      return true;
-    }
+    if (!query) return true;
     return (
       order.id.toLowerCase().includes(query) ||
       getCustomerName(order.userId).toLowerCase().includes(query) ||
@@ -440,7 +410,6 @@ function AdminRoute({ currentUser }) {
                   ))}
                 </div>
 
-                {/* แถวล่าง: ออเดอร์ล่าสุด + ลูกค้าซื้อเยอะสุด */}
                 <div className="row g-4 mt-1">
                   <div className="col-lg-7">
                     <div className="card border-0 shadow-sm h-100">
@@ -494,7 +463,7 @@ function AdminRoute({ currentUser }) {
                           <p className="text-muted mb-0">ยังไม่มีลูกค้าที่สั่งซื้อ</p>
                         ) : (
                           <ul className="list-group list-group-flush">
-                            {topCustomers.map((customer, index) => (
+                            {topCustomers.map((customer) => (
                               <li key={customer.id} className="list-group-item d-flex align-items-center gap-3 px-0">
                                 <span className="customer-avatar">{initials(customer.name)}</span>
                                 <div className="flex-grow-1">
@@ -513,14 +482,253 @@ function AdminRoute({ currentUser }) {
               </>
             )}
 
-            {/* ================= หน้า CUSTOMERS (รายชื่อลูกค้าที่เข้ามาใช้บริการ) ================= */}
+            {/* ================= 2. หน้า PRODUCTS ================= */}
+            {currentTab === "products" && (
+              <>
+                <div className="mb-4">
+                  <h1 className="page-title mb-2">Products Management</h1>
+                  <p className="lead text-muted mb-0">เพิ่ม แก้ไข หรือลบสินค้าบอร์ดเกมออกจากระบบหน้าร้าน</p>
+                </div>
+
+                {/* Form เพิ่ม / แก้ไข สินค้า */}
+                <div className="card border-0 shadow-sm mb-4">
+                  <div className="card-body p-4">
+                    <h5 className="card-title mb-3">
+                      {editingId ? "📝 แก้ไขข้อมูลบอร์ดเกม" : "✨ เพิ่มบอร์ดเกมใหม่เข้าระบบ"}
+                    </h5>
+                    <form onSubmit={handleSaveProduct} className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">ชื่อบอร์ดเกม *</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="เช่น Catan, Dixit, Azul"
+                          value={newName}
+                          onChange={(e) => setNewName(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="form-label fw-semibold">ราคาสินค้า (บาท) *</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="0"
+                          min="0"
+                          value={newPrice}
+                          onChange={(e) => setNewPrice(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="form-label fw-semibold">จำนวนในคลัง (กล่อง) *</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="0"
+                          min="0"
+                          value={newStock}
+                          onChange={(e) => setNewStock(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">หมวดหมู่สินค้า</label>
+                        <select
+                          className="form-select"
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                        >
+                          {categories
+                            .filter((cat) => cat !== "All")
+                            .map((cat) => (
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">อัปโหลดรูปภาพสินค้า</label>
+                        <input
+                          id="localImageUpload"
+                          type="file"
+                          accept="image/*"
+                          className="form-control"
+                          onChange={handleImageUpload}
+                        />
+                        <small className="text-muted d-block mt-1">แนะนำให้ใช้รูปภาพไม่เกิน 1.5MB ค่ะ</small>
+                      </div>
+
+                      {/* ตัวกรองเพิ่มเติมของบอร์ดเกม */}
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">👶 อายุขั้นต่ำ (ปี)</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="เช่น 8"
+                          min="0"
+                          value={newMinAge}
+                          onChange={(e) => setNewMinAge(e.target.value)}
+                        />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">👥 จำนวนผู้เล่นต่ำสุด</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="เช่น 2"
+                          min="1"
+                          value={newMinPlayers}
+                          onChange={(e) => setNewMinPlayers(e.target.value)}
+                        />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold">🔊 จำนวนผู้เล่นสูงสุด</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="เช่น 4"
+                          min="1"
+                          value={newMaxPlayers}
+                          onChange={(e) => setNewMaxPlayers(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label fw-semibold">คำอธิบายสินค้า</label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          placeholder="รายละเอียดกติกา อุปกรณ์ภายในกล่อง หรือจุดเด่นของเกม..."
+                          value={newDescription}
+                          onChange={(e) => setNewDescription(e.target.value)}
+                        />
+                      </div>
+                      <div className="col-12 d-flex gap-2 justify-content-end">
+                        <button type="button" className="btn btn-light border" onClick={clearForm}>
+                          ล้างฟอร์ม
+                        </button>
+                        <button type="submit" className="btn btn-boardhouse px-4">
+                          {editingId ? "อัปเดตข้อมูล" : "บันทึกสินค้า"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                {/* กล่องค้นหาและฟิลเตอร์หมวดหมู่สินค้าในตาราง */}
+                <div className="card border-0 shadow-sm mb-3">
+                  <div className="card-body p-3">
+                    <div className="row g-2">
+                      <div className="col-md-8">
+                        <input
+                          type="search"
+                          className="form-control"
+                          placeholder="🔎 ค้นหาชื่อบอร์ดเกมหรือหมวดหมู่..."
+                          value={productSearch}
+                          onChange={(e) => setProductSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="col-md-4">
+                        <select
+                          className="form-select"
+                          value={selectedCategoryFilter}
+                          onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                        >
+                          <option value="All">📂 แสดงทุกหมวดหมู่</option>
+                          {categories
+                            .filter((cat) => cat !== "All")
+                            .map((cat) => (
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ตารางแสดงรายชื่อสินค้า */}
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-0">
+                    <div className="table-responsive">
+                      <table className="table table-hover align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th className="px-4 py-3" style={{ width: "90px" }}>รูปภาพ</th>
+                            <th className="py-3">ชื่อสินค้า</th>
+                            <th className="py-3">หมวดหมู่</th>
+                            <th className="py-3">เงื่อนไขเกม</th>
+                            <th className="py-3 text-end">ราคา</th>
+                            <th className="py-3 text-center">คงเหลือ</th>
+                            <th className="px-4 py-3 text-end">จัดการ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredProducts.length === 0 ? (
+                            <tr>
+                              <td colSpan="7" className="text-center text-muted py-5">
+                                ไม่พบสินค้าที่ตรงกับเงื่อนไขการค้นหาค่ะ
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredProducts.map((product) => (
+                              <tr key={product.id}>
+                                <td className="px-4">
+                                  <div 
+                                    className="d-flex align-items-center justify-content-center overflow-hidden border rounded bg-light"
+                                    style={{ width: "60px", height: "60px" }}
+                                  >
+                                    <img
+                                      src={product.image || "https://placehold.co/300x200?text=No+Image"}
+                                      alt={product.name}
+                                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    />
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className="fw-semibold text-dark d-block">{product.name}</span>
+                                  <small className="text-muted d-block text-truncate" style={{ maxWidth: '200px' }}>
+                                    {product.description || "ไม่มีคำอธิบาย"}
+                                  </small>
+                                </td>
+                                <td>
+                                  <span className="badge bg-secondary-subtle text-secondary">{product.category || "General"}</span>
+                                </td>
+                                <td>
+                                  <small className="d-block text-muted">👶 {product.minAge || 8}+ ปีขึ้นไป</small>
+                                  <small className="d-block text-muted">👥 {product.minPlayers || 2} - {product.maxPlayers || 4} คน</small>
+                                </td>
+                                <td className="text-end fw-semibold">{money(product.price)}</td>
+                                <td className="text-center">
+                                  <span className={`fw-bold ${product.stock === 0 ? "text-danger" : "text-dark"}`}>{product.stock}</span>
+                                </td>
+                                <td className="px-4 text-end">
+                                  <div className="d-flex gap-2 justify-content-end">
+                                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => handleEditClick(product)}>แก้ไข</button>
+                                    <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClick(product.id)}>ลบ</button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ================= 3. หน้า CUSTOMERS ================= */}
             {currentTab === "customers" && (
               <>
                 <div className="mb-4">
                   <h1 className="page-title mb-2">Customers</h1>
                   <p className="lead text-muted mb-0">รายชื่อลูกค้าที่สมัครและเข้ามาใช้บริการเว็บไซต์</p>
                 </div>
-
                 <div className="row row-cols-1 row-cols-md-3 g-3 mb-4">
                   <div className="col">
                     <div className="card border-0 shadow-sm h-100">
@@ -574,9 +782,7 @@ function AdminRoute({ currentUser }) {
                         <tbody>
                           {filteredCustomers.length === 0 ? (
                             <tr>
-                              <td colSpan="6" className="text-center text-muted py-5">
-                                ไม่พบลูกค้าที่ตรงกับคำค้นหา
-                              </td>
+                              <td colSpan="6" className="text-center text-muted py-5">ไม่พบลูกค้าที่ตรงกับคำค้นหา</td>
                             </tr>
                           ) : (
                             filteredCustomers.map((customer) => (
@@ -615,16 +821,80 @@ function AdminRoute({ currentUser }) {
               </>
             )}
 
-            {/* ================= หน้า ADMINS (เฉพาะ Super Admin) ================= */}
+            {/* ================= 4. หน้า ORDERS ================= */}
+            {currentTab === "orders" && (
+              <>
+                <div className="mb-4">
+                  <h1 className="page-title mb-2">Orders Management</h1>
+                  <p className="lead text-muted mb-0">ดูและอัปเดตสถานะใบสั่งซื้อของลูกค้า</p>
+                </div>
+                <div className="card border-0 shadow-sm mb-3">
+                  <div className="card-body p-3">
+                    <input
+                      type="search"
+                      className="form-control"
+                      placeholder="🔎 ค้นหารหัสคำสั่งซื้อ ชื่อลูกค้า หรือสถานะ..."
+                      value={orderSearch}
+                      onChange={(e) => setOrderSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-0">
+                    <div className="table-responsive">
+                      <table className="table table-hover align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th className="px-4 py-3">รหัสออเดอร์</th>
+                            <th className="py-3">ลูกค้า</th>
+                            <th className="py-3">วันที่</th>
+                            <th className="py-3">รายการสินค้า</th>
+                            <th className="py-3 text-end">ยอดรวม</th>
+                            <th className="py-3 text-center">สถานะ</th>
+                            <th className="px-4 py-3 text-end">จัดการ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredOrders.length === 0 ? (
+                            <tr>
+                              <td colSpan="7" className="text-center text-muted py-5">ไม่พบรายการสั่งซื้อ</td>
+                            </tr>
+                          ) : (
+                            filteredOrders.map((order) => (
+                              <tr key={order.id}>
+                                <td className="px-4 text-muted fw-mono">{order.id}</td>
+                                <td className="fw-semibold">{getCustomerName(order.userId)}</td>
+                                <td>{order.date}</td>
+                                <td className="text-truncate" style={{ maxWidth: "200px" }}>{summarizeOrderItems(order.items)}</td>
+                                <td className="text-end fw-bold">{money(order.total)}</td>
+                                <td className="text-center">
+                                  <span className={`badge status-${order.status.toLowerCase()}`}>
+                                    {order.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 text-end">
+                                  <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setSelectedOrder(order)}>
+                                    ดูรายละเอียด
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ================= 5. หน้า ADMINS (เฉพาะ Super Admin) ================= */}
             {currentTab === "admins" && canManage && (
               <>
                 <div className="mb-4">
                   <h1 className="page-title mb-2">Admins</h1>
-                  <p className="lead text-muted mb-0">
-                    จัดการทีมผู้ดูแลระบบ — เฉพาะ Super Admin เท่านั้นที่เข้าหน้านี้ได้
-                  </p>
+                  <p className="lead text-muted mb-0">จัดการทีมผู้ดูแลระบบ — เฉพาะ Super Admin เท่านั้นที่เข้าหน้านี้ได้</p>
                 </div>
-
                 {adminError && <div className="alert alert-danger border-0 shadow-sm">{adminError}</div>}
                 {message && <div className="alert alert-success border-0 shadow-sm">{message}</div>}
 
@@ -635,72 +905,37 @@ function AdminRoute({ currentUser }) {
                         <h2 className="h6 mb-3">เพิ่ม Admin ใหม่</h2>
                         <form className="row g-2" onSubmit={handleCreateAdmin}>
                           <div className="col-md-6">
-                            <input
-                              className="form-control"
-                              placeholder="ชื่อ-นามสกุล"
-                              value={adminName}
-                              onChange={(e) => setAdminName(e.target.value)}
-                            />
+                            <input className="form-control" placeholder="ชื่อ-นามสกุล" value={adminName} onChange={(e) => setAdminName(e.target.value)} required />
                           </div>
                           <div className="col-md-6">
-                            <input
-                              className="form-control"
-                              type="email"
-                              placeholder="อีเมล"
-                              value={adminEmail}
-                              onChange={(e) => setAdminEmail(e.target.value)}
-                            />
+                            <input className="form-control" type="email" placeholder="อีเมล" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} required />
                           </div>
                           <div className="col-md-6">
-                            <input
-                              className="form-control"
-                              type="password"
-                              placeholder="รหัสผ่าน"
-                              value={adminPassword}
-                              onChange={(e) => setAdminPassword(e.target.value)}
-                            />
+                            <input className="form-control" type="password" placeholder="รหัสผ่าน" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} required />
                           </div>
                           <div className="col-md-6">
-                            <input
-                              className="form-control"
-                              placeholder="เบอร์โทร (ไม่บังคับ)"
-                              value={adminPhone}
-                              onChange={(e) => setAdminPhone(e.target.value)}
-                            />
+                            <input className="form-control" placeholder="เบอร์โทร (ไม่บังคับ)" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} />
                           </div>
                           <div className="col-12">
-                            <button className="btn btn-boardhouse w-100" type="submit">
-                              เพิ่ม Admin
-                            </button>
+                            <button className="btn btn-boardhouse w-100" type="submit">เพิ่ม Admin</button>
                           </div>
                         </form>
                       </div>
                     </div>
                   </div>
-
                   <div className="col-lg-5">
                     <div className="card border-0 shadow-sm h-100">
                       <div className="card-body p-3">
                         <h2 className="h6 mb-3">เลื่อนขั้นลูกค้าเป็น Admin</h2>
                         <form className="vstack gap-2" onSubmit={handlePromote}>
-                          <select
-                            className="form-select"
-                            value={promoteId}
-                            onChange={(e) => setPromoteId(e.target.value)}
-                          >
+                          <select className="form-select" value={promoteId} onChange={(e) => setPromoteId(e.target.value)}>
                             <option value="">— เลือกลูกค้า —</option>
                             {customers.map((customer) => (
-                              <option key={customer.id} value={customer.id}>
-                                {customer.name} ({customer.email})
-                              </option>
+                              <option key={customer.id} value={customer.id}>{customer.name} ({customer.email})</option>
                             ))}
                           </select>
-                          <button className="btn btn-boardhouse" type="submit">
-                            เลื่อนขั้นเป็น Admin
-                          </button>
-                          {customers.length === 0 && (
-                            <small className="text-muted">ยังไม่มีลูกค้าให้เลื่อนขั้น</small>
-                          )}
+                          <button className="btn btn-boardhouse" type="submit">เลื่อนขั้นเป็น Admin</button>
+                          {customers.length === 0 && <small className="text-muted">ยังไม่มีลูกค้าให้เลื่อนขั้น</small>}
                         </form>
                       </div>
                     </div>
@@ -722,7 +957,6 @@ function AdminRoute({ currentUser }) {
                         <tbody>
                           {admins.map((admin) => {
                             const locked = isSuperAdmin(admin) || admin.id === currentUser?.id;
-
                             return (
                               <tr key={admin.id}>
                                 <td className="px-4">
@@ -749,21 +983,9 @@ function AdminRoute({ currentUser }) {
                                       {admin.id === currentUser?.id ? "บัญชีของคุณ" : "แก้ไขไม่ได้"}
                                     </small>
                                   ) : (
-                                    <div className="btn-group btn-group-sm">
-                                      <button
-                                        className="btn btn-outline-secondary"
-                                        type="button"
-                                        onClick={() => handleDemote(admin)}
-                                      >
-                                        ลดขั้น
-                                      </button>
-                                      <button
-                                        className="btn btn-outline-danger"
-                                        type="button"
-                                        onClick={() => handleDeleteAdmin(admin)}
-                                      >
-                                        ลบ
-                                      </button>
+                                    <div className="d-flex gap-2 justify-content-end">
+                                      <button type="button" className="btn btn-sm btn-outline-warning" onClick={() => handleDemote(admin)}>ลดขั้น</button>
+                                      <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteAdmin(admin)}>ลบ</button>
                                     </div>
                                   )}
                                 </td>
@@ -778,344 +1000,45 @@ function AdminRoute({ currentUser }) {
               </>
             )}
 
-            {/* ================= 2. หน้า PRODUCTS ================= */}
-            {currentTab === "products" && (
-              <>
-                <div className="mb-4">
-                  <h1 className="page-title mb-2">Products Management</h1>
-                  <p className="lead text-muted mb-0">จัดการข้อมูลสต็อก รูปภาพ รายละเอียด และเงื่อนไขตัวกรองบอร์ดเกม</p>
-                </div>
-
-                <div className="card border-0 shadow-sm mb-4">
-                  <div className="card-body p-4">
-                    <h5 className="card-title text-muted text-uppercase mb-3" style={{ fontSize: "0.85rem" }}>
-                      {editingId ? "✏️ Mode: แก้ไขข้อมูลสินค้า" : "＋ Mode: เพิ่มสินค้าใหม่"}
-                    </h5>
-                    <form onSubmit={handleSaveProduct} className="row g-3">
-                      <div className="col-md-6">
-                        <label className="form-label small text-muted fw-bold">ชื่อสินค้า</label>
-                        <input type="text" className="form-control" placeholder="เช่น Catan, Dixit" value={newName} onChange={(e) => setNewName(e.target.value)} />
-                      </div>
-
-                      <div className="col-md-6">
-                        <label className="form-label small text-muted fw-bold">ประเภทสินค้า</label>
-                        <select className="form-select" value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
-                          {categories
-                            .filter((cat) => cat !== "All") // กรองเอาคำว่า "All" ออกไป
-                            .map((cat) => (
-                              <option key={cat} value={cat}>
-                                {cat}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-
-                      {/* 🖼️ เลือกอัปโหลดรูปภาพได้ 2 แบบ: เลือกไฟล์จากเครื่อง หรือ กรอก URL */}
-                      <div className="col-md-6">
-                        <label className="form-label small text-muted fw-bold">อัปโหลดรูปภาพจากเครื่อง</label>
-                        <input 
-                          type="file" 
-                          id="localImageUpload"
-                          className="form-control" 
-                          accept="image/*" 
-                          onChange={handleImageUpload} 
-                        />
-                        <div className="form-text" style={{ fontSize: "0.75rem" }}>แปลงรูปเป็น Base64 บันทึกลงเครื่องโดยตรง</div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <label className="form-label small text-muted fw-bold">หรือ ลิงก์ URL รูปภาพสินค้า</label>
-                        <input type="text" className="form-control" placeholder="https://..." value={newImage} onChange={(e) => setNewImage(e.target.value)} />
-                      </div>
-
-                      {/* ส่วนแสดงภาพ Preview เล็ก ๆ */}
-                      {newImage && (
-                        <div className="col-12">
-                          <p className="small mb-1 text-muted">ตัวอย่างแสดงผลรูปภาพ:</p>
-                          <img src={newImage} alt="Preview" className="img-thumbnail" style={{ maxHeight: "80px", objectFit: "contain" }} />
-                        </div>
-                      )}
-
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted fw-bold">ราคาขาย (บาท)</label>
-                        <input type="number" className="form-control" placeholder="ราคาสินค้า" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} min="0" />
-                      </div>
-
-                      {/* ⬇️ ตรงนี้แหละค่ะ! พี่ใส่ min="0" เพื่อกันลูกศรกดลดลงจนติดลบแล้วนะคะ */}
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted fw-bold">จำนวนในสต็อก (ชิ้น)</label>
-                        <input type="number" className="form-control" placeholder="จำนวนสินค้าในคลัง" value={newStock} onChange={(e) => setNewStock(e.target.value)} min="0" />
-                      </div>
-
-                      {/* 👶 ฟิลด์ตัวกรอง: อายุขั้นต่ำ */}
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted fw-bold">อายุแนะนำบนกล่อง (ปี+)</label>
-                        <input type="number" className="form-control" placeholder="เช่น 8" value={newMinAge} onChange={(e) => setNewMinAge(e.target.value)} min="0" />
-                      </div>
-
-                      {/* 👥 ฟิลด์ตัวกรอง: ช่วงจำนวนผู้เล่น */}
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted fw-bold">ผู้เล่นขั้นต่ำ (คน)</label>
-                        <input type="number" className="form-control" placeholder="เช่น 2" value={newMinPlayers} onChange={(e) => setNewMinPlayers(e.target.value)} min="1" />
-                      </div>
-
-                      <div className="col-md-4">
-                        <label className="form-label small text-muted fw-bold">ผู้เล่นสูงสุด (คน)</label>
-                        <input type="number" className="form-control" placeholder="เช่น 4" value={newMaxPlayers} onChange={(e) => setNewMaxPlayers(e.target.value)} min="1" />
-                      </div>
-
-                      <div className="col-md-4">
-                        {/* ปล่อยว่างเพื่อรักษาระยะ Grid 3 คอลัมน์ให้สมดุล */}
-                      </div>
-
-                      <div className="col-12">
-                        <label className="form-label small text-muted fw-bold">รายละเอียด / คำอธิบายสินค้า</label>
-                        <textarea className="form-control" rows="3" placeholder="เขียนอธิบายสรรพคุณสินค้า..." value={newDescription} onChange={(e) => setNewDescription(e.target.value)}></textarea>
-                      </div>
-
-                      <div className="col-12 d-flex gap-2 justify-content-end pt-2">
-                        {editingId && (
-                          <button type="button" className="btn btn-light border" onClick={clearForm}>
-                            ยกเลิกแก้ไข
-                          </button>
-                        )}
-                        <button type="submit" className="btn btn-primary px-4">
-                          {editingId ? "อัปเดตข้อมูล" : "บันทึกสินค้า"}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body p-0">
-                    <div className="table-responsive">
-                      <table className="table table-hover align-middle mb-0">
-                        <thead className="table-light">
-                          <tr>
-                            <th className="px-4 py-3">ID</th>
-                            <th className="py-3">สินค้า</th>
-                            <th className="py-3">ประเภท</th>
-                            <th className="py-3">ช่วงผู้เล่น / อายุ</th> {/* 💡 คอลัมน์สรุปข้อมูลตัวกรอง */}
-                            <th className="py-3">ราคา</th>
-                            <th className="py-3">คงเหลือ</th>
-                            <th className="px-4 py-3 text-end">เครื่องมือ</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {products.map((product) => (
-                            <tr key={product.id}>
-                              <td className="px-4 text-muted">#{product.id}</td>
-                              <td>
-                                <div className="d-flex align-items-center gap-3">
-                                  <img src={product.image || "https://placehold.co/300x200?text=No+Image"} alt={product.name} className="rounded" style={{ width: "45px", height: "45px", objectFit: "cover" }} />
-                                  <div>
-                                    <span className="fw-semibold text-dark d-block">{product.name}</span>
-                                    <small className="text-muted text-truncate d-block" style={{ maxWidth: "200px" }}>{product.description || "ไม่มีรายละเอียด"}</small>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <span className="badge rounded-pill bg-light border text-dark">
-                                  {product.category || "General"}
-                                </span>
-                              </td>
-                              {/* 💡 แสดงข้อมูลตัวกรองของเกมบนตารางสินค้า */}
-                              <td>
-                                <div style={{ fontSize: "0.85rem" }}>
-                                  <div className="text-muted">👥 {product.minPlayers || 2} - {product.maxPlayers || 4} คน</div>
-                                  <div className="text-muted">👶 {product.minAge || 8} ปีขึ้นไป</div>
-                                </div>
-                              </td>
-                              <td>{product.price.toLocaleString()} บาท</td>
-                              <td>
-                                <span className={`badge ${product.stock > 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"} px-2 py-1`}>
-                                  {product.stock} ชิ้น
-                                </span>
-                              </td>
-                              <td className="px-4 text-end">
-                                <button className="btn btn-sm btn-outline-secondary me-2" onClick={() => handleEditClick(product)}>แก้ไข</button>
-                                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClick(product.id)}>ลบ</button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* ================= 3. หน้า ORDERS ================= */}
-            {currentTab === "orders" && (
-              <>
-                <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-                  <div>
-                    <h1 className="page-title mb-2">Orders Management</h1>
-                    <p className="lead text-muted mb-0">จัดการคำสั่งซื้อของลูกค้าในระบบ</p>
-                  </div>
-                  <div style={{ minWidth: "260px" }}>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="ค้นหาด้วยเลขออเดอร์, ชื่อลูกค้า, สถานะ..."
-                      value={orderSearch}
-                      onChange={(e) => setOrderSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body p-0">
-                    <div className="table-responsive">
-                      <table className="table table-hover align-middle mb-0">
-                        <thead className="table-light">
-                          <tr>
-                            <th className="px-4 py-3">เลขออเดอร์</th>
-                            <th className="py-3">ลูกค้า</th>
-                            <th className="py-3">วันที่</th>
-                            <th className="py-3">รายการ</th>
-                            <th className="py-3">ยอดรวม</th>
-                            <th className="py-3">สถานะ</th>
-                            <th className="px-4 py-3 text-end">เครื่องมือ</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredOrders.map((order) => (
-                            <tr key={order.id}>
-                              <td className="px-4">
-                                <div className="fw-semibold text-dark">{order.id}</div>
-                                {order.trackingNumber && (
-                                  <div className="text-muted small">
-                                    <i className="bi bi-truck me-1" />
-                                    {order.trackingNumber}
-                                  </div>
-                                )}
-                              </td>
-                              <td>{getCustomerName(order.userId)}</td>
-                              <td className="text-muted">{order.date}</td>
-                              <td className="text-muted">
-                                <span className="d-block" style={{ maxWidth: "220px", whiteSpace: "normal" }}>
-                                  {summarizeOrderItems(order)}
-                                </span>
-                              </td>
-                              <td className="text-brand fw-semibold">{money(order.total)}</td>
-                              <td>
-                                {order.status === "Cancelled" ? (
-                                  <div>
-                                    <span className="badge rounded-pill status danger">
-                                      <i className="bi bi-x-circle-fill me-1" />
-                                      Cancelled
-                                    </span>
-                                    {order.cancelReason && (
-                                      <div className="text-muted small mt-1">เหตุผล: {order.cancelReason}</div>
-                                    )}
-                                    {order.cancelledBy && (
-                                      <div className="text-muted small">โดย: {order.cancelledBy}</div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="d-flex flex-column gap-2">
-                                    <select
-                                      className="form-select form-select-sm"
-                                      style={{ minWidth: "170px" }}
-                                      value={order.status}
-                                      onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
-                                    >
-                                      {(order.status === "Paid" ? ["Paid", ...editableStatuses] : editableStatuses).map(
-                                        (status) => (
-                                          <option key={status} value={status}>
-                                            {status}
-                                          </option>
-                                        )
-                                      )}
-                                    </select>
-                                    <button
-                                      type="button"
-                                      className="btn btn-sm btn-outline-danger"
-                                      onClick={() => openCancelModal(order.id)}
-                                    >
-                                      ยกเลิกออเดอร์
-                                    </button>
-                                  </div>
-                                )}
-                              </td>
-                              <td className="px-4 text-end">
-                                <button
-                                  className="btn btn-sm btn-outline-secondary"
-                                  type="button"
-                                  onClick={() => setSelectedOrder(order)}
-                                >
-                                  ดูรายละเอียด
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                          {filteredOrders.length === 0 && (
-                            <tr>
-                              <td colSpan={7} className="text-center text-muted py-5">
-                                ไม่พบคำสั่งซื้อที่ตรงกับการค้นหา
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
           </div>
         </div>
       </div>
 
+      {/* Modal ดูรายละเอียดคำสั่งซื้อ */}
       {selectedOrder && (
         <OrderDetailModal
-          key={selectedOrder.id}
           order={selectedOrder}
-          customerName={getCustomerName(selectedOrder.userId)}
           onClose={() => setSelectedOrder(null)}
-          editable
-          onSave={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
+          onStatusChange={handleOrderStatusChange}
+          onCancelClick={openCancelModal}
+          onSaveDetails={handleOrderDetailsSave}
+          editableStatuses={editableStatuses}
         />
       )}
 
+      {/* Modal ป๊อปอัปกรอกเหตุผลการยกเลิกออเดอร์ */}
       {cancelTargetId && (
-        <div className="order-modal-backdrop" onClick={closeCancelModal}>
-          <div
-            className="card shadow order-modal-dialog"
-            style={{ maxWidth: "480px" }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="card-body p-4">
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <h2 className="h5 mb-0">ยกเลิกออเดอร์ {cancelTargetId}</h2>
-                <button type="button" className="btn-close" aria-label="Close" onClick={closeCancelModal} />
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title">🚫 ระบุเหตุผลการยกเลิกออเดอร์</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={closeCancelModal}></button>
               </div>
-              <label className="form-label" htmlFor="cancel-reason-input">
-                เหตุผลในการยกเลิก
-              </label>
-              <textarea
-                id="cancel-reason-input"
-                className="form-control mb-2"
-                rows={4}
-                placeholder="เช่น ลูกค้าขอยกเลิก, สินค้าหมดสต๊อก ฯลฯ"
-                value={cancelReasonInput}
-                onChange={(event) => setCancelReasonInput(event.target.value)}
-              />
-              {cancelError && <p className="text-danger small mb-3">{cancelError}</p>}
-              <p className="text-muted small mb-3">
-                ดำเนินการโดย: <strong>{currentUser?.name || currentUser?.email || "ไม่ทราบผู้ดำเนินการ"}</strong>
-              </p>
-              <div className="d-flex justify-content-end gap-2">
-                <button type="button" className="btn btn-outline-secondary" onClick={closeCancelModal}>
-                  ปิด
-                </button>
-                <button type="button" className="btn btn-danger" onClick={handleConfirmCancel}>
-                  ยืนยันยกเลิกออเดอร์
-                </button>
+              <div className="modal-body">
+                {cancelError && <div className="alert alert-danger py-2 small">{cancelError}</div>}
+                <p className="text-muted small mb-2">กรุณากรอกเหตุผลที่ต้องยกเลิกคำสั่งซื้อนี้ ระบบจะบันทึกข้อมูลและส่งแจ้งไปยังฝั่งลูกค้าค่ะ</p>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  placeholder="เช่น สินค้าหมดคลังชั่วคราว, ลูกค้าแจ้งขอยกเลิกผ่านแชท..."
+                  value={cancelReasonInput}
+                  onChange={(e) => setCancelReasonInput(e.target.value)}
+                />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-light border" onClick={closeCancelModal}>ปิดหน้าต่าง</button>
+                <button type="button" className="btn btn-danger" onClick={handleConfirmCancel}>ยืนยันการยกเลิก</button>
               </div>
             </div>
           </div>
