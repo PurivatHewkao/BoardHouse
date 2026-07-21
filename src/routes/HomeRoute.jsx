@@ -59,52 +59,85 @@ function HomeRoute({ products, addToCart, selectedCategory, setSelectedCategory 
     { label: "5 คนขึ้นไป", value: "5+" }
   ];
 
+  const hasActiveFilters =
+    query.trim() || category !== "All" || selectedAge !== "All" || selectedPlayers !== "All";
+
+  function clearFilters() {
+    setQuery("");
+    setCategory("All");
+    setSelectedAge("All");
+    setSelectedPlayers("All");
+  }
+
   return (
     <>
-      {/* Hero Section */}
-      <section className="hero-section border-bottom">
-        <div className="container-xxl py-5">
-          <div className="row align-items-center g-5 py-lg-5">
-            <div className="col-lg-7">
-              <span className="badge rounded-pill text-bg-light border px-3 py-2 mb-4">University Project</span>
-              <h1 className="hero-title display-1 mb-4">
-                Welcome to <span className="d-block text-brand">BoardHouse</span>
+      <section className="hero-section">
+        <div className="hero-pattern" aria-hidden="true" />
+        <div className="container-xxl position-relative py-5">
+          <div className="row align-items-center g-5 py-lg-4">
+            <div className="col-lg-7 py-lg-4">
+              <span className="hero-eyebrow mb-4">
+                <span className="hero-eyebrow-dot" /> บ้านของคนรักบอร์ดเกม
+              </span>
+              <h1 className="hero-title mb-4">
+                <span className="text-brand">เริ่มต้นที่ BoardHouse</span>
               </h1>
-              <p className="lead text-muted mb-4">
-                ค้นหาบอร์ดเกมที่ใช่สำหรับคุณ กรองง่ายตามประเภท อายุ หรือจำนวนผู้เล่น ทอยลูกเต๋าแล้วสนุกไปด้วยกันเลย!
+              <p className="hero-copy mb-4">
+                เลือกบอร์ดเกมสำหรับทุกวง ทุกวัย และทุกสไตล์การเล่น พร้อมค้นหาเกมที่เหมาะกับกลุ่มของคุณได้ง่ายในไม่กี่คลิก
               </p>
+              <div className="d-flex flex-wrap align-items-center gap-3 mb-4">
+                <a className="btn btn-boardhouse btn-lg hero-cta" href="#products">
+                  เลือกดูบอร์ดเกม <span aria-hidden="true">→</span>
+                </a>
+                <span className="hero-note">จัดส่งความสนุกถึงหน้าบ้าน</span>
+              </div>
+              <div className="hero-highlights">
+                <span><strong>{products.length}+</strong> เกมน่าเล่น</span>
+                <span><strong>{Math.max(0, categories.length - 1)}</strong> หมวดหมู่</span>
+                <span><strong>100%</strong> เลือกได้ตามสไตล์คุณ</span>
+              </div>
             </div>
             <div className="col-lg-5 d-flex justify-content-lg-center">
               <div className="hero-art" aria-hidden="true">
+                <span className="hero-orbit hero-orbit-one">PARTY</span>
+                <span className="hero-orbit hero-orbit-two">STRATEGY</span>
+                <span className="hero-orbit hero-orbit-three">FAMILY</span>
+                <div className="hero-art-ring" />
                 <div className="large-dice"><DiceMark /></div>
+                <span className="hero-piece hero-piece-circle" />
+                <span className="hero-piece hero-piece-square" />
+                <span className="hero-piece hero-piece-triangle" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section ค้นหาและตัวกรองทั้งหมด */}
-      <section className="py-5">
+      <section className="home-catalog pb-5" id="products">
         <div className="container-xxl">
-          
-          {/* แถวที่ 1: ค้นหาชื่อเกม & เลือกประเภทเกม */}
-          <div className="row g-3 align-items-center mb-4">
-            <div className="col-lg-4">
-              <label className="input-group input-group-lg shadow-sm">
-                <span className="input-group-text bg-white border-end-0">ค้นหา</span>
+          <div className="filter-panel">
+            <div className="filter-panel-top">
+              <label className="home-search">
+                <span className="home-search-icon" aria-hidden="true">⌕</span>
+                <span className="visually-hidden">ค้นหาบอร์ดเกม</span>
                 <input
-                  className="form-control border-start-0"
+                  type="search"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="ค้นหาชื่อเกมหรือหมวดหมู่..."
                 />
               </label>
+              <div className="filter-result">
+                พบ <strong>{visibleProducts.length}</strong> เกม
+              </div>
             </div>
-            <div className="col-lg-8">
-              <div className="d-flex flex-wrap justify-content-lg-end gap-2">
+
+            <div className="filter-row">
+              <span className="filter-label">ประเภทเกม</span>
+              <div className="filter-options">
                 {categories.map((item) => (
                   <button
-                    className={category === item ? "btn btn-category active" : "btn btn-category"}
+                    className={category === item ? "filter-chip active" : "filter-chip"}
                     key={item}
                     type="button"
                     onClick={() => setSelectedCategory(item)}
@@ -114,44 +147,53 @@ function HomeRoute({ products, addToCart, selectedCategory, setSelectedCategory 
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* แถวที่ 2: ปุ่มกรองตามช่วงอายุผู้เล่นขั้นต่ำ */}
-          <div className="row mb-3">
-            <div className="col-12 d-flex flex-wrap gap-2 align-items-center">
-              <span className="text-muted me-2 small fw-bold" style={{ width: "100px" }}>อายุบนกล่อง:</span>
+            <div className="filter-row">
+              <span className="filter-label">อายุแนะนำ</span>
+              <div className="filter-options">
               {ageFilters.map((age) => (
                 <button
                   key={age.value}
                   type="button"
-                  className={`btn btn-sm ${selectedAge === age.value ? 'btn-dark' : 'btn-outline-secondary'}`}
+                  className={selectedAge === age.value ? "filter-chip active" : "filter-chip"}
                   onClick={() => setSelectedAge(age.value)}
                 >
                   {age.label}
                 </button>
               ))}
+              </div>
             </div>
-          </div>
 
-          {/* 👥 แถวที่ 3: ปุ่มกรองตามจำนวนผู้เล่น */}
-          <div className="row mb-5">
-            <div className="col-12 d-flex flex-wrap gap-2 align-items-center">
-              <span className="text-muted me-2 small fw-bold" style={{ width: "100px" }}>จำนวนผู้เล่น:</span>
+            <div className="filter-row filter-row-last">
+              <span className="filter-label">จำนวนผู้เล่น</span>
+              <div className="filter-options">
               {playerFilters.map((p) => (
                 <button
                   key={p.value}
                   type="button"
-                  className={`btn btn-sm ${selectedPlayers === p.value ? 'btn-brand text-white bg-brand' : 'btn-outline-secondary'}`}
-                  style={selectedPlayers === p.value ? { backgroundColor: "var(--bs-primary)", border: "none" } : {}}
+                  className={selectedPlayers === p.value ? "filter-chip active" : "filter-chip"}
                   onClick={() => setSelectedPlayers(p.value)}
                 >
                   {p.label}
                 </button>
               ))}
+              </div>
+              {hasActiveFilters && (
+                <button className="filter-clear" type="button" onClick={clearFilters}>
+                  ล้างตัวกรอง
+                </button>
+              )}
             </div>
           </div>
 
-          {/* แสดงรายการการ์ดสินค้า */}
+          <div className="catalog-heading">
+            <div>
+              <span className="catalog-kicker">เลือกเกมที่เข้ากับวงของคุณ</span>
+              <h2 className="catalog-title">บอร์ดเกมทั้งหมด</h2>
+            </div>
+            <p>คัดสรรเกมยอดนิยม พร้อมข้อมูลผู้เล่น อายุ และสต็อกครบถ้วน</p>
+          </div>
+
           <div className="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
             {visibleProducts.map((product) => (
               <div className="col" key={product.id}>
@@ -159,8 +201,13 @@ function HomeRoute({ products, addToCart, selectedCategory, setSelectedCategory 
               </div>
             ))}
             {visibleProducts.length === 0 && (
-              <div className="col-12 text-center text-muted py-5 card shadow-sm">
-                ไม่พบสินค้าบอร์ดเกมที่ตรงตามเงื่อนไขการค้นหาของคุณในขณะนี้
+              <div className="col-12">
+                <div className="empty-products">
+                  <span className="empty-products-icon">⌕</span>
+                  <h3>ยังไม่เจอเกมที่ตรงใจ</h3>
+                  <p>ลองเปลี่ยนคำค้นหา หรือเลือกตัวกรองให้น้อยลงอีกนิด</p>
+                  <button className="btn btn-boardhouse" type="button" onClick={clearFilters}>ดูเกมทั้งหมด</button>
+                </div>
               </div>
             )}
           </div>
@@ -232,82 +279,29 @@ function HomeRoute({ products, addToCart, selectedCategory, setSelectedCategory 
 // 🛠️ แก้ไขส่วนนี้แบบดักทุกทางเพื่อไม่ให้รูปล้นมาทับตัวหนังสือเด็ดขาด
 function ProductCard({ product, addToCart, onViewProduct }) {
   return (
-    <article className="card product-card h-100 shadow-sm border-0 d-flex flex-column" style={{ overflow: "hidden" }}>
-      
-      {/* 🖼️ แก้กรอบรูปภาพ: บังคับความสูงตายตัว 200px และซ่อนทุกอย่างที่ล้นออกนอกกล่อง (overflow: "hidden") */}
-      <div 
-        className="product-image-container position-relative w-100" 
-        style={{ 
-          height: "200px", 
-          maxHeight: "200px",
-          overflow: "hidden", 
-          background: "#f8f9fa" 
-        }}
-      >
-        <img 
-          src={product.image || "https://placehold.co/300x200?text=No+Image"} 
-          alt={product.name} 
-          style={{ 
-            width: "100%", 
-            height: "100%", 
-            maxWidth: "100%",
-            maxHeight: "100%",
-            display: "block",
-            objectFit: "cover", 
-            objectPosition: "center" 
-          }}
-        />
+    <article className="product-card h-100">
+      <div className="product-card-image">
+        <img src={product.image || "https://placehold.co/300x200?text=No+Image"} alt={product.name} />
+        <span className="product-category">{product.category || "General"}</span>
+        <span className={product.stock > 0 ? "product-stock in-stock" : "product-stock out-stock"}>
+          {product.stock > 0 ? `เหลือ ${product.stock}` : "สินค้าหมด"}
+        </span>
       </div>
-      
-      {/* 📝 ส่วนเนื้อหาและตัวหนังสือด้านล่าง */}
-      <div className="card-body d-flex flex-column p-3 bg-white" style={{ flexGrow: 1 }}>
-        
-        {/* ประเภทเกม */}
-        <div className="mb-2">
-          <span className="badge rounded-pill bg-light border text-dark" style={{ fontSize: "0.75rem" }}>
-            {product.category || "General"}
-          </span>
-        </div>
-
-        {/* ชื่อเกม: มี text-truncate บังคับให้อยู่บรรทัดเดียวและตัดไข่ปลา ป้องกันชื่อยาวดันโครงสร้างพัง */}
-        <h3 
-          className="h6 mb-2 text-dark text-truncate fw-bold" 
-          style={{ fontSize: "1.02rem", lineHeight: "1.4" }}
-          title={product.name}
-        >
-          {product.name}
-        </h3>
-
-        {/* ข้อมูลรายละเอียดจำกัดเนื้อหา */}
-        <div className="d-flex justify-content-between align-items-center small text-muted mb-3">
+      <div className="product-card-body">
+        <h3 title={product.name}>{product.name}</h3>
+        <div className="product-meta">
           <span>👥 {product.minPlayers}-{product.maxPlayers} คน</span>
-          <span className={product.stock > 0 ? "text-success" : "text-danger"}>
-            {product.stock > 0 ? `คงเหลือ ${product.stock} ชิ้น` : "สินค้าหมด"}
-          </span>
+          <span>อายุ {product.minAge || "ทั่วไป"}+</span>
         </div>
-
-        {/* ปุ่มและราคาจะถูกดันให้อยู่แนบด้านล่างสุดเสมอ */}
-        <div className="mt-auto">
-          <div className="mb-3">
-            <p className="price h5 mb-0 text-brand fw-bold">{money(product.price)}</p>
-          </div>
-          
-          <div className="d-flex gap-2">
-            <button className="btn btn-light border flex-fill btn-sm py-2" type="button" onClick={() => onViewProduct(product)}>
-              รายละเอียด
-            </button>
-            <button
-              className="btn btn-boardhouse flex-fill btn-sm py-2 text-white"
-              type="button"
-              disabled={product.stock <= 0}
-              onClick={() => addToCart(product.id)}
-              style={product.stock > 0 ? {} : { backgroundColor: "#ccc", border: "none" }}
-            >
+        <div className="product-card-bottom">
+          <p className="product-price">{money(product.price)}</p>
+          <div className="product-actions">
+            <button className="btn product-detail-button" type="button" onClick={() => onViewProduct(product)}>รายละเอียด</button>
+            <button className="btn btn-boardhouse" type="button" disabled={product.stock <= 0} onClick={() => addToCart(product.id)}>
               {product.stock > 0 ? "ใส่ตะกร้า" : "หมด"}
             </button>
           </div>
         </div>
-
       </div>
     </article>
   );
