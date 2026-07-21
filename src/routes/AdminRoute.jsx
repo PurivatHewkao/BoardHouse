@@ -51,6 +51,8 @@ function AdminRoute({ currentUser, setCurrentUser }) {
   // State สำหรับหน้า Orders
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderSearch, setOrderSearch] = useState("");
+  const [orderPage, setOrderPage] = useState(1);
+  const ORDERS_PER_PAGE = 10;
 
   // ช่องค้นหาในหน้ารายชื่อลูกค้า
   const [customerSearch, setCustomerSearch] = useState("");
@@ -366,6 +368,14 @@ function AdminRoute({ currentUser, setCurrentUser }) {
       order.status.toLowerCase().includes(query)
     );
   });
+
+  // แบ่งหน้ารายการออเดอร์ หน้าละ 10 รายการ กันหน้ายาวเกินตอนออเดอร์เยอะ
+  const totalOrderPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
+  const safeOrderPage = Math.min(orderPage, totalOrderPages);
+  const paginatedOrders = filteredOrders.slice(
+    (safeOrderPage - 1) * ORDERS_PER_PAGE,
+    safeOrderPage * ORDERS_PER_PAGE
+  );
 
   return (
     <section className="py-5">
@@ -856,7 +866,10 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                       className="form-control"
                       placeholder="🔎 ค้นหารหัสคำสั่งซื้อ ชื่อลูกค้า หรือสถานะ..."
                       value={orderSearch}
-                      onChange={(e) => setOrderSearch(e.target.value)}
+                      onChange={(e) => {
+                        setOrderSearch(e.target.value);
+                        setOrderPage(1);
+                      }}
                     />
                   </div>
                 </div>
@@ -881,7 +894,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                               <td colSpan="7" className="text-center text-muted py-5">ไม่พบรายการสั่งซื้อ</td>
                             </tr>
                           ) : (
-                            filteredOrders.map((order) => (
+                            paginatedOrders.map((order) => (
                               <tr key={order.id}>
                                 <td className="px-4 text-muted fw-mono">{order.id}</td>
                                 <td className="fw-semibold">{getCustomerName(order.userId)}</td>
@@ -904,6 +917,31 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                         </tbody>
                       </table>
                     </div>
+                    {filteredOrders.length > 0 && (
+                      <div className="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+                        <span className="text-muted small">
+                          หน้า {safeOrderPage} จาก {totalOrderPages} (ทั้งหมด {filteredOrders.length} รายการ)
+                        </span>
+                        <div className="d-flex gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary"
+                            disabled={safeOrderPage <= 1}
+                            onClick={() => setOrderPage((page) => Math.max(1, page - 1))}
+                          >
+                            ก่อนหน้า
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary"
+                            disabled={safeOrderPage >= totalOrderPages}
+                            onClick={() => setOrderPage((page) => Math.min(totalOrderPages, page + 1))}
+                          >
+                            ถัดไป
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
