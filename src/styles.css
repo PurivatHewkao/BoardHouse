@@ -60,6 +60,19 @@ main {
   background: #f5efe4;
 }
 
+.footer-shop-link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.footer-shop-link:hover,
+.footer-shop-link:focus {
+  color: var(--bh-brand);
+}
+
 .brand-button {
   color: var(--bh-text);
   font-family: var(--bh-serif);

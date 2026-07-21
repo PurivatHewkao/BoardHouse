@@ -3,9 +3,9 @@ import DiceMark from "../components/DiceMark.jsx";
 import { categories } from "../data/products.js";
 import { money } from "../utils/format.js";
 
-function HomeRoute({ products, addToCart }) {
+function HomeRoute({ products, addToCart, selectedCategory, setSelectedCategory }) {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All");
+  const category = selectedCategory || "All";
   
   // 👶 State สำหรับตัวกรองอายุขั้นต่ำ (กี่ปีขึ้นไป)
   const [selectedAge, setSelectedAge] = useState("All");
@@ -107,7 +107,7 @@ function HomeRoute({ products, addToCart }) {
                     className={category === item ? "btn btn-category active" : "btn btn-category"}
                     key={item}
                     type="button"
-                    onClick={() => setCategory(item)}
+                    onClick={() => setSelectedCategory(item)}
                   >
                     {item === "All" ? "ทุกประเภท" : item}
                   </button>

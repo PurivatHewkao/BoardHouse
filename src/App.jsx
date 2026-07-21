@@ -32,6 +32,7 @@ function App() {
   const [products, setProducts] = useState(getProducts);
   const [cart, setCart] = useState(getInitialCart);
   const [currentUser, updateCurrentUser] = useState(getCurrentUser);
+  const [homeCategory, setHomeCategory] = useState("All");
 
   useEffect(() => {
     saveCart(cart);
@@ -56,6 +57,12 @@ function App() {
     logoutUser();
     updateCurrentUser(null);
     setPage("Login");
+  }
+
+  function handleShopCategory(category) {
+    setHomeCategory(category);
+    setPage("Home");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   // บันทึกที่อยู่จัดส่งใหม่ที่กรอกตอนจ่ายเงินลงในโปรไฟล์ผู้ใช้ เพื่อให้เลือกใช้ได้ในครั้งถัดไป
@@ -153,7 +160,14 @@ function App() {
     <div className="app-shell">
       <Header page={page} setPage={setPage} currentUser={currentUser} onLogout={handleLogout} />
       <main>
-        {page === "Home" && <HomeRoute products={products} addToCart={addToCart} />}
+        {page === "Home" && (
+          <HomeRoute
+            products={products}
+            addToCart={addToCart}
+            selectedCategory={homeCategory}
+            setSelectedCategory={setHomeCategory}
+          />
+        )}
         {page === "Cart" && (
           <CartRoute
             items={cartItems}
@@ -187,7 +201,7 @@ function App() {
           <AdminRoute currentUser={currentUser} setCurrentUser={updateCurrentUser} />
         )}
       </main>
-      <Footer />
+      <Footer onShopCategory={handleShopCategory} selectedCategory={homeCategory} />
     </div>
   );
 }
