@@ -14,7 +14,13 @@ function CartRoute({ items, subtotal, changeQuantity, removeItem, checkout }) {
                   <div className="card-body">
                     <div className="row g-3 align-items-center">
                       <div className="col-auto">
-                        <div className="cart-thumb" />
+                        <div className="cart-thumb overflow-hidden">
+                          <img
+                            src={item.product.image || "https://placehold.co/96x96?text=No+Image"}
+                            alt={item.product.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          />
+                        </div>
                       </div>
                       <div className="col">
                         <h2 className="h4 mb-1">{item.product.name}</h2>

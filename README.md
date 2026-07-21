@@ -393,7 +393,50 @@ sequenceDiagram
 
     Order-->>Admin: บันทึกการเปลี่ยนแปลงสำเร็จ
 ```
+### System Architecture
 
+```mermaid
+flowchart TB
+    subgraph Client["Client (Browser) - React SPA, ไม่มี Backend Server"]
+        subgraph Presentation["Presentation Layer - src/routes + components"]
+            HomeRoute["HomeRoute<br/>Browse / Search / Detail"]
+            AuthRoutes["AuthRoutes<br/>Login / Register"]
+            CartRoute["CartRoute<br/>Manage Cart"]
+            CheckoutRoute["CheckoutRoute<br/>Checkout / Payment"]
+            OrdersRoute["OrdersRoute<br/>Order History / Track"]
+            ProfileRoute["ProfileRoute<br/>Profile / Address"]
+            AdminRoute["AdminRoute<br/>Dashboard / Manage All"]
+        end
+        subgraph AppCore["Application Core"]
+            AppJsx["App.jsx<br/>Root State + Routing"]
+        end
+        subgraph BusinessLogic["Business Logic Layer - src/utils"]
+            UserStorage["userStorage.js<br/>Auth, Address, Role"]
+            OrderStorage["orderStorage.js<br/>Order, Status Flow"]
+            CartStorage["cartStorage.js<br/>Cart Ops"]
+            ProductStorage["productStorage.js<br/>Product CRUD"]
+            Validation["validation.js<br/>Form Validation (ใหม่)"]
+            Roles["roles.js<br/>Role Guard"]
+        end
+        subgraph DataLayer["Data Access Layer"]
+            LocalDb["localStorageDb.js<br/>read/write wrapper"]
+        end
+        subgraph Storage["Persistence"]
+            LocalStorage[("localStorage<br/>users, orders, products, cart")]
+        end
+        SeedData["seedData.js<br/>Initial Mock Data"]
+    end
+    Presentation --> AppJsx
+    AppJsx --> BusinessLogic
+    Presentation -.validate ก่อนส่ง.-> Validation
+    UserStorage --> LocalDb
+    OrderStorage --> LocalDb
+    CartStorage --> LocalDb
+    ProductStorage --> LocalDb
+    LocalDb --> LocalStorage
+    SeedData -.seed ครั้งแรก.-> LocalDb
+    Roles --> AppJsx
+```
 ---
 
 ## Development

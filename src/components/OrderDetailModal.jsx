@@ -37,6 +37,7 @@ function OrderDetailModal({
   const [savedMessage, setSavedMessage] = useState("");
   const [addressError, setAddressError] = useState("");
   const [trackingSavedMessage, setTrackingSavedMessage] = useState("");
+  const [trackingError, setTrackingError] = useState("");
 
   if (!order) {
     return null;
@@ -64,10 +65,18 @@ function OrderDetailModal({
     window.setTimeout(() => setSavedMessage(""), 2500);
   }
 
-  // บันทึกผู้ให้บริการขนส่ง + เลขพัสดุแยกจากที่อยู่ — ถ้ากรอกเลขพัสดุแล้วให้เปลี่ยนสถานะเป็น "In Transit" อัตโนมัติ
+  // บันทึกผู้ให้บริการขนส่ง + เลขพัสดุแยกจากที่อยู่ — เลขพัสดุต้องมีความยาวครบ 13 หลักพอดีเท่านั้น
   // (flow: สั่งซื้อ = Preparing Shipment -> กรอก tracking = In Transit -> กด Complete = Completed)
   function handleSaveTracking() {
     const trimmed = trackingNumber.trim();
+
+    if (trimmed.length !== 13) {
+      setTrackingError("กรุณากรอกเลขพัสดุให้ครบ 13 หลัก (ตัวอักษรหรือตัวเลข)");
+      setTrackingSavedMessage("");
+      return;
+    }
+
+    setTrackingError("");
     onSaveTracking?.({
       trackingNumber: trimmed,
       carrier: trimmed ? carrier : "",
@@ -181,13 +190,18 @@ function OrderDetailModal({
                   <label className="form-label">
                     เลขพัสดุ (Tracking Number)
                     <input
-                      className="form-control mt-2"
-                      placeholder="เช่น TH1234567890"
+                      className={`form-control mt-2 ${trackingError ? "is-invalid" : ""}`}
+                      placeholder="กรอก 13 ตัว"
                       value={trackingNumber}
-                      onChange={(event) => setTrackingNumber(event.target.value)}
+                      maxLength={13}
+                      onChange={(event) => {
+                        setTrackingNumber(event.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 13));
+                        setTrackingError("");
+                      }}
                       disabled={isLocked}
                     />
                   </label>
+                  {trackingError && <p className="text-danger small mb-0 mt-1">{trackingError}</p>}
                 </div>
                 {/* ปุ่มบันทึกแยกจากรายละเอียดอื่น — กรอกเลขพัสดุแล้วกดปุ่มนี้จะเปลี่ยนสถานะเป็น "เตรียมส่ง" ให้อัตโนมัติ */}
                 <div className="col-md-2 d-grid">
