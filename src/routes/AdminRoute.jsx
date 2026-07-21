@@ -47,6 +47,7 @@ function AdminRoute({ currentUser }) {
   // State สำหรับค้นหาและกรองหมวดหมู่ในตารางสินค้า
   const [productSearch, setProductSearch] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("All");
+  const [selectedStockFilter, setSelectedStockFilter] = useState("All");
 
   // State สำหรับหน้า Orders
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -119,6 +120,10 @@ function AdminRoute({ currentUser }) {
     { label: "Total Customers", value: customers.length, icon: "users" },
     { label: "Total Sales", value: money(revenue), icon: "cash" },
   ];
+
+  const totalProductStock = products.reduce((sum, product) => sum + Number(product.stock || 0), 0);
+  const lowStockCount = products.filter((product) => product.stock > 0 && product.stock <= 5).length;
+  const outOfStockCount = products.filter((product) => product.stock === 0).length;
 
   function initials(name) {
     return name
@@ -216,6 +221,10 @@ function AdminRoute({ currentUser }) {
       alert("ราคาและจำนวนสินค้าในสต็อกต้องไม่ติดลบนะคะ!");
       return;
     }
+    if (Number(newMinPlayers) < 1 || Number(newMaxPlayers) < Number(newMinPlayers)) {
+      alert("จำนวนผู้เล่นสูงสุดต้องไม่น้อยกว่าจำนวนผู้เล่นขั้นต่ำค่ะ");
+      return;
+    }
 
     const itemData = {
       name: newName,
@@ -252,6 +261,7 @@ function AdminRoute({ currentUser }) {
     setNewMinAge(product.minAge !== undefined ? product.minAge : 8);
     setNewMinPlayers(product.minPlayers !== undefined ? product.minPlayers : 2);
     setNewMaxPlayers(product.maxPlayers !== undefined ? product.maxPlayers : 4);
+    requestAnimationFrame(() => document.getElementById("product-editor")?.scrollIntoView({ behavior: "smooth" }));
   }
 
   function handleDeleteClick(id) {
@@ -262,6 +272,7 @@ function AdminRoute({ currentUser }) {
   }
 
   function clearForm() {
+    setEditingId(null);
     setNewName("");
     setNewPrice("");
     setNewStock("");
@@ -336,7 +347,12 @@ function AdminRoute({ currentUser }) {
     const searchableText = `${product.name || ""} ${product.category || ""}`.toLocaleLowerCase("th-TH");
     const matchesSearch = !normalizedSearch || searchableText.includes(normalizedSearch);
     const matchesCategory = selectedCategoryFilter === "All" || product.category === selectedCategoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesStock =
+      selectedStockFilter === "All" ||
+      (selectedStockFilter === "available" && product.stock > 0) ||
+      (selectedStockFilter === "low" && product.stock > 0 && product.stock <= 5) ||
+      (selectedStockFilter === "out" && product.stock === 0);
+    return matchesSearch && matchesCategory && matchesStock;
   });
 
   const filteredOrders = orders.filter((order) => {
@@ -485,238 +501,210 @@ function AdminRoute({ currentUser }) {
             {/* ================= 2. หน้า PRODUCTS ================= */}
             {currentTab === "products" && (
               <>
-                <div className="mb-4">
-                  <h1 className="page-title mb-2">Products Management</h1>
-                  <p className="lead text-muted mb-0">เพิ่ม แก้ไข หรือลบสินค้าบอร์ดเกมออกจากระบบหน้าร้าน</p>
+                <div className="admin-product-heading">
+                  <div>
+                    <span className="admin-section-kicker">Product Management</span>
+                    <h1 className="page-title mb-2">จัดการสินค้าบอร์ดเกม</h1>
+                    <p className="text-muted mb-0">ดูแลข้อมูล ราคา และสต็อกสินค้าที่แสดงบนหน้าร้าน</p>
+                  </div>
+                  <button
+                    className="btn btn-boardhouse admin-add-product"
+                    type="button"
+                    onClick={() => {
+                      clearForm();
+                      requestAnimationFrame(() => document.getElementById("product-editor")?.scrollIntoView({ behavior: "smooth" }));
+                    }}
+                  >
+                    <span aria-hidden="true">＋</span> เพิ่มสินค้าใหม่
+                  </button>
                 </div>
 
-                {/* Form เพิ่ม / แก้ไข สินค้า */}
-                <div className="card border-0 shadow-sm mb-4">
-                  <div className="card-body p-4">
-                    <h5 className="card-title mb-3">
-                      {editingId ? "📝 แก้ไขข้อมูลบอร์ดเกม" : "✨ เพิ่มบอร์ดเกมใหม่เข้าระบบ"}
-                    </h5>
-                    <form onSubmit={handleSaveProduct} className="row g-3">
-                      <div className="col-md-6">
-                        <label className="form-label fw-semibold">ชื่อบอร์ดเกม *</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="เช่น Catan, Dixit, Azul"
-                          value={newName}
-                          onChange={(e) => setNewName(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="col-md-3">
-                        <label className="form-label fw-semibold">ราคาสินค้า (บาท) *</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder="0"
-                          min="0"
-                          value={newPrice}
-                          onChange={(e) => setNewPrice(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="col-md-3">
-                        <label className="form-label fw-semibold">จำนวนในคลัง (กล่อง) *</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder="0"
-                          min="0"
-                          value={newStock}
-                          onChange={(e) => setNewStock(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label fw-semibold">หมวดหมู่สินค้า</label>
-                        <select
-                          className="form-select"
-                          value={newCategory}
-                          onChange={(e) => setNewCategory(e.target.value)}
-                        >
-                          {categories
-                            .filter((cat) => cat !== "All")
-                            .map((cat) => (
-                              <option key={cat} value={cat}>
-                                {cat}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label fw-semibold">อัปโหลดรูปภาพสินค้า</label>
+                <div className="row row-cols-2 row-cols-xl-4 g-3 admin-product-stats">
+                  <div className="col">
+                    <div className="admin-product-stat">
+                      <span className="admin-product-stat-icon">▦</span>
+                      <div><strong>{products.length}</strong><span>สินค้าทั้งหมด</span></div>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div className="admin-product-stat">
+                      <span className="admin-product-stat-icon">□</span>
+                      <div><strong>{totalProductStock}</strong><span>สินค้าในคลัง</span></div>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div className="admin-product-stat is-warning">
+                      <span className="admin-product-stat-icon">!</span>
+                      <div><strong>{lowStockCount}</strong><span>ใกล้หมด</span></div>
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div className="admin-product-stat is-danger">
+                      <span className="admin-product-stat-icon">×</span>
+                      <div><strong>{outOfStockCount}</strong><span>หมดสต็อก</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <form id="product-editor" onSubmit={handleSaveProduct} className="admin-product-editor">
+                  <div className="admin-editor-header">
+                    <div>
+                      <span className="admin-editor-step">ข้อมูลสินค้า</span>
+                      <h2>{editingId ? `แก้ไขสินค้า #${editingId}` : "เพิ่มบอร์ดเกมใหม่"}</h2>
+                    </div>
+                    {editingId && <span className="admin-editing-badge">กำลังแก้ไข</span>}
+                  </div>
+
+                  <div className="row g-4">
+                    <div className="col-lg-4">
+                      <div className="admin-image-panel">
+                        <div className="admin-image-preview">
+                          {newImage ? (
+                            <img src={newImage} alt="ตัวอย่างรูปสินค้า" />
+                          ) : (
+                            <div className="admin-image-empty">
+                              <span aria-hidden="true">▧</span>
+                              <strong>ตัวอย่างรูปสินค้า</strong>
+                              <small>JPG, PNG หรือ WEBP</small>
+                            </div>
+                          )}
+                        </div>
+                        <label className="admin-upload-button" htmlFor="localImageUpload">
+                          เลือกรูปภาพ
+                        </label>
                         <input
                           id="localImageUpload"
                           type="file"
                           accept="image/*"
-                          className="form-control"
+                          className="visually-hidden"
                           onChange={handleImageUpload}
                         />
-                        <small className="text-muted d-block mt-1">แนะนำให้ใช้รูปภาพไม่เกิน 1.5MB ค่ะ</small>
+                        <small>ขนาดไฟล์ไม่เกิน 1.5MB</small>
                       </div>
+                    </div>
 
-                      {/* ตัวกรองเพิ่มเติมของบอร์ดเกม */}
-                      <div className="col-md-4">
-                        <label className="form-label fw-semibold">👶 อายุขั้นต่ำ (ปี)</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder="เช่น 8"
-                          min="0"
-                          value={newMinAge}
-                          onChange={(e) => setNewMinAge(e.target.value)}
-                        />
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label fw-semibold">👥 จำนวนผู้เล่นต่ำสุด</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder="เช่น 2"
-                          min="1"
-                          value={newMinPlayers}
-                          onChange={(e) => setNewMinPlayers(e.target.value)}
-                        />
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label fw-semibold">🔊 จำนวนผู้เล่นสูงสุด</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder="เช่น 4"
-                          min="1"
-                          value={newMaxPlayers}
-                          onChange={(e) => setNewMaxPlayers(e.target.value)}
-                        />
-                      </div>
-
-                      <div className="col-12">
-                        <label className="form-label fw-semibold">คำอธิบายสินค้า</label>
-                        <textarea
-                          className="form-control"
-                          rows="3"
-                          placeholder="รายละเอียดกติกา อุปกรณ์ภายในกล่อง หรือจุดเด่นของเกม..."
-                          value={newDescription}
-                          onChange={(e) => setNewDescription(e.target.value)}
-                        />
-                      </div>
-                      <div className="col-12 d-flex gap-2 justify-content-end">
-                        <button type="button" className="btn btn-light border" onClick={clearForm}>
-                          ล้างฟอร์ม
-                        </button>
-                        <button type="submit" className="btn btn-boardhouse px-4">
-                          {editingId ? "อัปเดตข้อมูล" : "บันทึกสินค้า"}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-
-                {/* กล่องค้นหาและฟิลเตอร์หมวดหมู่สินค้าในตาราง */}
-                <div className="card border-0 shadow-sm mb-3">
-                  <div className="card-body p-3">
-                    <div className="row g-2">
-                      <div className="col-md-8">
-                        <input
-                          type="search"
-                          className="form-control"
-                          placeholder="🔎 ค้นหาชื่อบอร์ดเกมหรือหมวดหมู่..."
-                          value={productSearch}
-                          onChange={(e) => setProductSearch(e.target.value)}
-                        />
-                      </div>
-                      <div className="col-md-4">
-                        <select
-                          className="form-select"
-                          value={selectedCategoryFilter}
-                          onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-                        >
-                          <option value="All">📂 แสดงทุกหมวดหมู่</option>
-                          {categories
-                            .filter((cat) => cat !== "All")
-                            .map((cat) => (
-                              <option key={cat} value={cat}>
-                                {cat}
-                              </option>
-                            ))}
-                        </select>
+                    <div className="col-lg-8">
+                      <div className="row g-3">
+                        <div className="col-md-8">
+                          <label className="form-label">ชื่อบอร์ดเกม <span>*</span></label>
+                          <input type="text" className="form-control" placeholder="เช่น Catan, Dixit, Azul" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label">หมวดหมู่</label>
+                          <select className="form-select" value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
+                            {categories.filter((cat) => cat !== "All").map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                          </select>
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label">ราคาขาย (บาท) <span>*</span></label>
+                          <div className="admin-input-suffix">
+                            <input type="number" className="form-control" placeholder="0" min="0" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} required />
+                            <span>฿</span>
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label">จำนวนในคลัง <span>*</span></label>
+                          <div className="admin-input-suffix">
+                            <input type="number" className="form-control" placeholder="0" min="0" value={newStock} onChange={(e) => setNewStock(e.target.value)} required />
+                            <span>กล่อง</span>
+                          </div>
+                        </div>
+                        <div className="col-12"><div className="admin-form-divider"><span>ข้อมูลการเล่น</span></div></div>
+                        <div className="col-md-4">
+                          <label className="form-label">อายุขั้นต่ำ</label>
+                          <input type="number" className="form-control" min="0" value={newMinAge} onChange={(e) => setNewMinAge(e.target.value)} />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label">ผู้เล่นต่ำสุด</label>
+                          <input type="number" className="form-control" min="1" value={newMinPlayers} onChange={(e) => setNewMinPlayers(e.target.value)} />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label">ผู้เล่นสูงสุด</label>
+                          <input type="number" className="form-control" min="1" value={newMaxPlayers} onChange={(e) => setNewMaxPlayers(e.target.value)} />
+                        </div>
+                        <div className="col-12">
+                          <label className="form-label">คำอธิบายสินค้า</label>
+                          <textarea className="form-control" rows="3" placeholder="รายละเอียดกติกา อุปกรณ์ภายในกล่อง หรือจุดเด่นของเกม..." value={newDescription} onChange={(e) => setNewDescription(e.target.value)} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* ตารางแสดงรายชื่อสินค้า */}
-                <div className="card border-0 shadow-sm">
-                  <div className="card-body p-0">
-                    <div className="table-responsive">
-                      <table className="table table-hover align-middle mb-0">
-                        <thead className="table-light">
+                  <div className="admin-editor-actions">
+                    <button type="button" className="btn admin-cancel-button" onClick={clearForm}>{editingId ? "ยกเลิกการแก้ไข" : "ล้างข้อมูล"}</button>
+                    <button type="submit" className="btn btn-boardhouse px-4">{editingId ? "บันทึกการแก้ไข" : "เพิ่มสินค้าเข้าร้าน"}</button>
+                  </div>
+                </form>
+
+                <div className="admin-product-list">
+                  <div className="admin-product-list-header">
+                    <div>
+                      <span className="admin-section-kicker">Inventory</span>
+                      <h2>รายการสินค้า</h2>
+                      <p>แสดง {filteredProducts.length} จาก {products.length} รายการ</p>
+                    </div>
+                    <div className="admin-product-filters">
+                      <label className="admin-product-search">
+                        <span aria-hidden="true">⌕</span>
+                        <input type="search" placeholder="ค้นหาชื่อหรือหมวดหมู่..." value={productSearch} onChange={(e) => setProductSearch(e.target.value)} />
+                      </label>
+                      <select aria-label="กรองตามหมวดหมู่" value={selectedCategoryFilter} onChange={(e) => setSelectedCategoryFilter(e.target.value)}>
+                        <option value="All">ทุกหมวดหมู่</option>
+                        {categories.filter((cat) => cat !== "All").map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                      </select>
+                      <select aria-label="กรองตามสต็อก" value={selectedStockFilter} onChange={(e) => setSelectedStockFilter(e.target.value)}>
+                        <option value="All">ทุกสถานะสต็อก</option>
+                        <option value="available">มีสินค้า</option>
+                        <option value="low">ใกล้หมด (ไม่เกิน 5)</option>
+                        <option value="out">หมดสต็อก</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="table align-middle mb-0 admin-product-table">
+                      <thead>
+                        <tr>
+                          <th className="ps-4">สินค้า</th>
+                          <th>หมวดหมู่</th>
+                          <th>ข้อมูลการเล่น</th>
+                          <th className="text-end">ราคา</th>
+                          <th className="text-center">สต็อก</th>
+                          <th className="pe-4 text-end">จัดการ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredProducts.length === 0 ? (
                           <tr>
-                            <th className="px-4 py-3" style={{ width: "90px" }}>รูปภาพ</th>
-                            <th className="py-3">ชื่อสินค้า</th>
-                            <th className="py-3">หมวดหมู่</th>
-                            <th className="py-3">เงื่อนไขเกม</th>
-                            <th className="py-3 text-end">ราคา</th>
-                            <th className="py-3 text-center">คงเหลือ</th>
-                            <th className="px-4 py-3 text-end">จัดการ</th>
+                            <td colSpan="6">
+                              <div className="admin-products-empty"><span>⌕</span><strong>ไม่พบสินค้าที่ค้นหา</strong><small>ลองเปลี่ยนคำค้นหาหรือตัวกรองอีกครั้ง</small></div>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {filteredProducts.length === 0 ? (
-                            <tr>
-                              <td colSpan="7" className="text-center text-muted py-5">
-                                ไม่พบสินค้าที่ตรงกับเงื่อนไขการค้นหาค่ะ
+                        ) : filteredProducts.map((product) => {
+                          const stockTone = product.stock === 0 ? "out" : product.stock <= 5 ? "low" : "ready";
+                          return (
+                            <tr key={product.id}>
+                              <td className="ps-4">
+                                <div className="admin-product-name-cell">
+                                  <img src={product.image || "https://placehold.co/300x200?text=No+Image"} alt={product.name} />
+                                  <div><strong>{product.name}</strong><small>รหัสสินค้า #{product.id}</small></div>
+                                </div>
+                              </td>
+                              <td><span className="admin-category-badge">{product.category || "General"}</span></td>
+                              <td><div className="admin-game-info"><span>อายุ {product.minAge || 8}+</span><span>{product.minPlayers || 2}-{product.maxPlayers || 4} คน</span></div></td>
+                              <td className="text-end admin-product-price">{money(product.price)}</td>
+                              <td className="text-center"><span className={`admin-stock-badge ${stockTone}`}>{product.stock === 0 ? "หมด" : `${product.stock} กล่อง`}</span></td>
+                              <td className="pe-4 text-end">
+                                <div className="admin-product-actions">
+                                  <button type="button" className="admin-edit-button" onClick={() => handleEditClick(product)}>แก้ไข</button>
+                                  <button type="button" className="admin-delete-button" onClick={() => handleDeleteClick(product.id)}>ลบ</button>
+                                </div>
                               </td>
                             </tr>
-                          ) : (
-                            filteredProducts.map((product) => (
-                              <tr key={product.id}>
-                                <td className="px-4">
-                                  <div 
-                                    className="d-flex align-items-center justify-content-center overflow-hidden border rounded bg-light"
-                                    style={{ width: "60px", height: "60px" }}
-                                  >
-                                    <img
-                                      src={product.image || "https://placehold.co/300x200?text=No+Image"}
-                                      alt={product.name}
-                                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                    />
-                                  </div>
-                                </td>
-                                <td>
-                                  <span className="fw-semibold text-dark d-block">{product.name}</span>
-                                  <small className="text-muted d-block text-truncate" style={{ maxWidth: '200px' }}>
-                                    {product.description || "ไม่มีคำอธิบาย"}
-                                  </small>
-                                </td>
-                                <td>
-                                  <span className="badge bg-secondary-subtle text-secondary">{product.category || "General"}</span>
-                                </td>
-                                <td>
-                                  <small className="d-block text-muted">👶 {product.minAge || 8}+ ปีขึ้นไป</small>
-                                  <small className="d-block text-muted">👥 {product.minPlayers || 2} - {product.maxPlayers || 4} คน</small>
-                                </td>
-                                <td className="text-end fw-semibold">{money(product.price)}</td>
-                                <td className="text-center">
-                                  <span className={`fw-bold ${product.stock === 0 ? "text-danger" : "text-dark"}`}>{product.stock}</span>
-                                </td>
-                                <td className="px-4 text-end">
-                                  <div className="d-flex gap-2 justify-content-end">
-                                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => handleEditClick(product)}>แก้ไข</button>
-                                    <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteClick(product.id)}>ลบ</button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </>
