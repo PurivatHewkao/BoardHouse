@@ -746,7 +746,7 @@ https://quilled-edge-054.notion.site/3a1dadaf37a28069a987e5e7becfb3ff?v=3a1dadaf
 | ลำดับ | ชื่อ-นามสกุล | กลุ่ม | รหัสนักศึกษา | ลิ้งค์ |
 | ----- | ----------------------- | ----- | ------------ | ----- |
 | 1 | Overall Team's UAT | | | [UAT Result](https://app.notion.com/p/3a1dadaf37a28027bfbdcb58b847b5cf?v=514dadaf37a2823b85b188e55ac23683&source=copy_link) |
-| 2 | ภูริวัชร์ จินดาพงษ์ศิริ | T003 | 67182803 | [UAT Purivat](https://app.notion.com/p/3a1dadaf37a2809ba7b3dde503ed4837?v=7f1dadaf37a28299937c88bb8772b0cc&source=copy_link) |
+| 2 | ภูริวัชร์ จินดาพงษ์ศิริ | T003 | 67182803 | [UAT Purivat](https://quilled-edge-054.notion.site/3a4dadaf37a2802bb3e0c3810c1c711e?v=95ddadaf37a28333bc130837ce8717d5&source=copy_link) |
 | 3 | ภานุกร แสงมณี | T001 | 67161002 | [UAT Phanukon](https://app.notion.com/p/3a1dadaf37a2803d9eeff2f8da04a69a?v=e83dadaf37a2830a95ab0806a4ed061a&source=copy_link) |
 | 4 | บุรพร วันทอง | T001 | 67167437 | [UAT Buraphorn](https://app.notion.com/p/3a1dadaf37a280b79c33ec14abbc10b5?v=e32dadaf37a282baae72881bfe56a2fb&source=copy_link) |
 | 5 | กนก รัตนเรืองรักษ์ | T001 | 67188118 | [UAT Kanok](https://app.notion.com/p/3a1dadaf37a28045a7bfc15d2f441079?v=7b0dadaf37a28311898a08a38a887d38&source=copy_link) |
