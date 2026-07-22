@@ -126,10 +126,10 @@ function AdminRoute({ currentUser, setCurrentUser }) {
     .slice(0, 5);
 
   const stats = [
-    { label: "Total Products", value: products.length, icon: "box" },
-    { label: "Total Orders", value: orders.length, icon: "bag" },
-    { label: "Total Customers", value: customers.length, icon: "users" },
-    { label: "Total Sales", value: money(revenue), icon: "cash" },
+    { label: "สินค้าทั้งหมด", value: products.length, icon: "box" },
+    { label: "ออเดอร์ทั้งหมด", value: orders.length, icon: "bag" },
+    { label: "ลูกค้าทั้งหมด", value: customers.length, icon: "users" },
+    { label: "ยอดขายรวม", value: money(revenue), icon: "cash" },
   ];
 
   const totalProductStock = products.reduce((sum, product) => sum + Number(product.stock || 0), 0);
