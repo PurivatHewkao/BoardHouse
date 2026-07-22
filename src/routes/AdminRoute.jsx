@@ -153,8 +153,8 @@ function AdminRoute({ currentUser, setCurrentUser }) {
     });
   }
 
-  function handleResetData() {
-    resetStorage();
+  async function handleResetData() {
+    await resetStorage();
     window.location.reload();
   }
 

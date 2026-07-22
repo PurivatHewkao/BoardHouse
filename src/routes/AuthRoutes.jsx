@@ -36,12 +36,12 @@ export function LoginRoute({ setPage, setCurrentUser }) {
     setPage(isAdmin(user) ? "Admin" : "Home");
   }
 
-  function handleResetData() {
+  async function handleResetData() {
     if (!confirm("Reset mock data and reload the app?")) {
       return;
     }
 
-    resetStorage();
+    await resetStorage();
     window.location.reload();
   }
 

@@ -1,40 +1,49 @@
 import { seedData, seedVersion, storageKeys } from "../data/seedData.js";
+import {
+  clearData,
+  getDataSourceInfo,
+  hasData,
+  readData,
+  resetApiData,
+  syncDataFromApi,
+  writeData,
+} from "../services/dataSource.js";
 
 export { storageKeys };
 
 export function readStorage(key, fallback) {
-  try {
-    const savedValue = localStorage.getItem(key);
-    return savedValue ? JSON.parse(savedValue) : fallback;
-  } catch {
-    localStorage.removeItem(key);
-    return fallback;
-  }
+  return readData(key, fallback);
 }
 
 export function writeStorage(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Keep the mock app usable even if browser storage is blocked.
-  }
+  writeData(key, value);
 }
 
 function clearAndStampVersion() {
-  Object.values(storageKeys).forEach((key) => localStorage.removeItem(key));
+  clearData(Object.values(storageKeys));
   writeStorage(storageKeys.seedVersion, seedVersion);
 }
 
 function fillMissingKeys() {
   Object.entries(seedData).forEach(([key, value]) => {
-    if (localStorage.getItem(key) === null) {
+    if (!hasData(key)) {
       writeStorage(key, value);
     }
   });
 }
 
-export function seedStorage() {
+export async function seedStorage() {
   try {
+    if (getDataSourceInfo().usesApi) {
+      const synced = await syncDataFromApi(Object.values(storageKeys));
+
+      if (!synced) {
+        fillMissingKeys();
+      }
+
+      return;
+    }
+
     // ของเก่าที่ค้างในเบราว์เซอร์คนละเวอร์ชันกับ seed ปัจจุบัน จะขาด user/role ที่เพิ่งเพิ่ม เลยต้องล้างก่อน
     if (readStorage(storageKeys.seedVersion, 0) !== seedVersion) {
       clearAndStampVersion();
@@ -42,12 +51,20 @@ export function seedStorage() {
 
     fillMissingKeys();
   } catch {
-    // Keep rendering even if localStorage is unavailable.
+    fillMissingKeys();
   }
 }
 
-export function resetStorage() {
+export async function resetStorage() {
   try {
+    if (getDataSourceInfo().usesApi) {
+      const reset = await resetApiData();
+
+      if (reset) {
+        return;
+      }
+    }
+
     clearAndStampVersion();
     fillMissingKeys();
   } catch {
