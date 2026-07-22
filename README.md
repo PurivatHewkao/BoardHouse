@@ -592,7 +592,82 @@ flowchart TB
     OrderService --> LocalStorage
     UserService --> LocalStorage
 ```
+```mermaid
+flowchart TB
+  subgraph CL["Client Layer"]
+    CUS["Customer"]
+    ADM["Admin"]
+    SA["Super Admin"]
+    BR["Web Browser<br/>Desktop / Mobile"]
+    CUS --> BR
+    ADM --> BR
+    SA --> BR
+  end
 
+  subgraph PL["Presentation Layer"]
+    VITE["Vite Frontend Server<br/>npm run dev / npm run demo"]
+    REACT["React Frontend<br/>Bootstrap + Custom CSS"]
+    VITE --> REACT
+  end
+
+  subgraph ABL["Application and Business Logic Layer"]
+    AUTH["Authentication Module<br/>Register / Login / Role Guard"]
+    PRODUCT["Product Module<br/>Browse / Search / Filter / Product Detail"]
+    CART["Cart Module<br/>Add / Update / Remove Item"]
+    ORDER["Order Module<br/>Checkout / Order History / Status"]
+    DASH["Dashboard Module<br/>Orders / Sales / Stock"]
+    USERMGMT["User Management Module<br/>Profile / Customer / Admin"]
+  end
+
+  subgraph DAL["Data Access Layer"]
+    USERUTIL["userStorage.js<br/>Users / Current User / Roles"]
+    PRODUCTUTIL["productStorage.js<br/>Products / Stock"]
+    CARTUTIL["cartStorage.js<br/>Cart Items"]
+    ORDERUTIL["orderStorage.js<br/>Orders"]
+    DS["dataSource.js<br/>Switch Data Source"]
+  end
+
+  subgraph BL["Backend Layer"]
+    API["Node.js + Express Server<br/>server/index.js"]
+    REST["REST API<br/>/api/storage<br/>/api/storage/:key<br/>/api/storage/reset"]
+  end
+
+  subgraph DL["Data Layer"]
+    DB[("server/db.json<br/>Products / Users / Orders / Cart / Current User")]
+    SEED["seedData.js<br/>Default Products / Demo Accounts / Seed Version"]
+    LOCAL[("Browser localStorage<br/>ใช้เฉพาะ local mode / fallback")]
+  end
+
+  BR --> VITE
+  REACT --> AUTH
+  REACT --> PRODUCT
+  REACT --> CART
+  REACT --> ORDER
+  REACT --> DASH
+  REACT --> USERMGMT
+
+  AUTH --> USERUTIL
+  USERMGMT --> USERUTIL
+  PRODUCT --> PRODUCTUTIL
+  CART --> CARTUTIL
+  ORDER --> ORDERUTIL
+  DASH --> PRODUCTUTIL
+  DASH --> ORDERUTIL
+  DASH --> USERUTIL
+
+  USERUTIL --> DS
+  PRODUCTUTIL --> DS
+  CARTUTIL --> DS
+  ORDERUTIL --> DS
+
+  DS -->|"VITE_DATA_SOURCE=api"| API
+  API --> REST
+  REST --> DB
+
+  DS -. "VITE_DATA_SOURCE=local" .-> LOCAL
+  SEED --> API
+  SEED --> DS
+```
 ## System Structure
 
 House Board เป็นเว็บจำหน่ายบอร์ดเกมแบบ eCommerce แต่อย่างไรก็ตามเนื่องจากโปรเจกต์นี้เป็นการบันทึกข้อมูลแบบ Local Storage ดังนั้นโครงสร้างของระบบจะแบ่งออกเป็น 3 ส่วนหลัก ได้แก่ Frontend, Backend และ Local Storage
