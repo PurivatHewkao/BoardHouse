@@ -419,7 +419,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 </button>
               )}
               <button className={`list-group-item list-group-item-action ${currentTab === "account" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("account")}>
-                บัญชีของฉัน
+                My Account
               </button>
             </div>
           </aside>
@@ -432,7 +432,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
                   <div>
                     <h1 className="page-title mb-2">Dashboard</h1>
-                    <p className="lead text-muted mb-0">Overview of the BoardHouse store.</p>
+                    <p className="lead text-muted mb-0">ภาพรวมของร้าน BoardHouse</p>
                   </div>
                   <div className="d-grid gap-2 d-md-block">
                     <button className="btn btn-outline-danger" type="button" onClick={handleResetData}>
@@ -535,7 +535,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 <div className="admin-product-heading">
                   <div>
                     <span className="admin-section-kicker">Product Management</span>
-                    <h1 className="page-title mb-2">จัดการสินค้าบอร์ดเกม</h1>
+                    <h1 className="page-title mb-2">Products Management</h1>
                     <p className="text-muted mb-0">ดูแลข้อมูล ราคา และสต็อกสินค้าที่แสดงบนหน้าร้าน</p>
                   </div>
                   <button
@@ -1033,7 +1033,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
             {currentTab === "account" && (
               <>
                 <div className="mb-4">
-                  <h1 className="page-title mb-2">บัญชีของฉัน</h1>
+                  <h1 className="page-title mb-2">My Account</h1>
                   <p className="lead text-muted mb-0">แก้ไขข้อมูลส่วนตัวและเปลี่ยนรหัสผ่านของบัญชีคุณเอง</p>
                 </div>
 
