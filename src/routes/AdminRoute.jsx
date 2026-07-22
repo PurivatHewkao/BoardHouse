@@ -126,10 +126,10 @@ function AdminRoute({ currentUser, setCurrentUser }) {
     .slice(0, 5);
 
   const stats = [
-    { label: "Total Products", value: products.length, icon: "box" },
-    { label: "Total Orders", value: orders.length, icon: "bag" },
-    { label: "Total Customers", value: customers.length, icon: "users" },
-    { label: "Total Sales", value: money(revenue), icon: "cash" },
+    { label: "สินค้าทั้งหมด", value: products.length, icon: "box" },
+    { label: "ออเดอร์ทั้งหมด", value: orders.length, icon: "bag" },
+    { label: "ลูกค้าทั้งหมด", value: customers.length, icon: "users" },
+    { label: "ยอดขายรวม", value: money(revenue), icon: "cash" },
   ];
 
   const totalProductStock = products.reduce((sum, product) => sum + Number(product.stock || 0), 0);
@@ -419,7 +419,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 </button>
               )}
               <button className={`list-group-item list-group-item-action ${currentTab === "account" ? "active" : ""}`} type="button" onClick={() => setCurrentTab("account")}>
-                บัญชีของฉัน
+                My Account
               </button>
             </div>
           </aside>
@@ -432,7 +432,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
                   <div>
                     <h1 className="page-title mb-2">Dashboard</h1>
-                    <p className="lead text-muted mb-0">Overview of the BoardHouse store.</p>
+                    <p className="lead text-muted mb-0">ภาพรวมของร้าน BoardHouse</p>
                   </div>
                   <div className="d-grid gap-2 d-md-block">
                     <button className="btn btn-outline-danger" type="button" onClick={handleResetData}>
@@ -535,7 +535,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 <div className="admin-product-heading">
                   <div>
                     <span className="admin-section-kicker">Product Management</span>
-                    <h1 className="page-title mb-2">จัดการสินค้าบอร์ดเกม</h1>
+                    <h1 className="page-title mb-2">Products Management</h1>
                     <p className="text-muted mb-0">ดูแลข้อมูล ราคา และสต็อกสินค้าที่แสดงบนหน้าร้าน</p>
                   </div>
                   <button
@@ -580,8 +580,8 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 <form id="product-editor" onSubmit={handleSaveProduct} className="admin-product-editor">
                   <div className="admin-editor-header">
                     <div>
-                      <span className="admin-editor-step">ข้อมูลสินค้า</span>
-                      <h2>{editingId ? `แก้ไขสินค้า #${editingId}` : "เพิ่มบอร์ดเกมใหม่"}</h2>
+                      <span className="admin-editor-step">Product Info</span>
+                      <h2>{editingId ? `Edit Product #${editingId}` : "Add New Product"}</h2>
                     </div>
                     {editingId && <span className="admin-editing-badge">กำลังแก้ไข</span>}
                   </div>
@@ -671,7 +671,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                   <div className="admin-product-list-header">
                     <div>
                       <span className="admin-section-kicker">Inventory</span>
-                      <h2>รายการสินค้า</h2>
+                      <h2>Product List</h2>
                       <p>แสดง {filteredProducts.length} จาก {products.length} รายการ</p>
                     </div>
                     <div className="admin-product-filters">
@@ -947,7 +947,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
 
                 <div className="card border-0 shadow-sm mb-4">
                   <div className="card-body p-3">
-                    <h2 className="h6 mb-1">เพิ่ม Admin ใหม่</h2>
+                    <h2 className="h6 mb-1">Add New Admin</h2>
                     <p className="text-muted small mb-3">
                       สร้างบัญชีแอดมินขึ้นมาใหม่โดยตรง (แยกจากบัญชีลูกค้า) เพื่อไม่ให้ข้อมูลการซื้อของปนกัน
                     </p>
@@ -1033,7 +1033,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
             {currentTab === "account" && (
               <>
                 <div className="mb-4">
-                  <h1 className="page-title mb-2">บัญชีของฉัน</h1>
+                  <h1 className="page-title mb-2">My Account</h1>
                   <p className="lead text-muted mb-0">แก้ไขข้อมูลส่วนตัวและเปลี่ยนรหัสผ่านของบัญชีคุณเอง</p>
                 </div>
 
@@ -1041,7 +1041,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                   <div className="col-lg-6">
                     <div className="card border-0 shadow-sm h-100">
                       <div className="card-body p-4">
-                        <h2 className="h6 mb-3">ข้อมูลส่วนตัว</h2>
+                        <h2 className="h6 mb-3">Personal Info</h2>
                         <form className="vstack gap-3" onSubmit={handleSaveMyProfile}>
                           <div>
                             <label className="form-label fw-semibold">ชื่อ-นามสกุล</label>
@@ -1067,7 +1067,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                   <div className="col-lg-6">
                     <div className="card border-0 shadow-sm h-100">
                       <div className="card-body p-4">
-                        <h2 className="h6 mb-3">เปลี่ยนรหัสผ่าน</h2>
+                        <h2 className="h6 mb-3">Change Password</h2>
                         <form className="vstack gap-3" onSubmit={handleChangeMyPassword}>
                           <div>
                             <label className="form-label fw-semibold">รหัสผ่านปัจจุบัน</label>
@@ -1108,6 +1108,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
           onSaveAddress={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
           onSaveTracking={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
           onComplete={() => handleOrderStatusChange(selectedOrder.id, "Completed")}
+          onRevertToInTransit={() => handleOrderStatusChange(selectedOrder.id, "In Transit")}
         />
       )}
 
@@ -1117,7 +1118,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow">
               <div className="modal-header">
-                <h5 className="modal-title">แก้ไขข้อมูล Admin</h5>
+                <h5 className="modal-title">Edit Admin</h5>
                 <button type="button" className="btn-close" onClick={() => setEditingAdmin(null)}></button>
               </div>
               <form onSubmit={handleSaveEditAdmin}>

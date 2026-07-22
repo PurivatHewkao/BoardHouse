@@ -30,6 +30,7 @@ function OrderDetailModal({
   onSaveAddress,
   onSaveTracking,
   onComplete,
+  onRevertToInTransit,
 }) {
   const [addressForm, setAddressForm] = useState({ ...emptyAddress, ...(order?.shippingAddress || {}) });
   const [carrier, setCarrier] = useState(order?.carrier || carrierOptions[0]);
@@ -71,7 +72,7 @@ function OrderDetailModal({
     const trimmed = trackingNumber.trim();
 
     if (trimmed.length !== 13) {
-      setTrackingError("กรุณากรอกเลขพัสดุให้ครบ 13 หลัก (ตัวอักษรหรือตัวเลข)");
+      setTrackingError("กรุณากรอกเลขพัสดุให้ครบ 13 หลัก");
       setTrackingSavedMessage("");
       return;
     }
@@ -89,6 +90,11 @@ function OrderDetailModal({
   function handleComplete() {
     if (!confirm("ยืนยันปิดออเดอร์นี้เป็นสถานะจัดส่งสำเร็จใช่ไหม?")) return;
     onComplete?.();
+  }
+
+  function handleRevert() {
+    if (!confirm("ย้อนสถานะออเดอร์นี้กลับเป็น \"In Transit\" ใช่ไหม?")) return;
+    onRevertToInTransit?.();
   }
 
   const displayAddress = editable ? addressForm : order.shippingAddress;
@@ -191,7 +197,7 @@ function OrderDetailModal({
                     เลขพัสดุ (Tracking Number)
                     <input
                       className={`form-control mt-2 ${trackingError ? "is-invalid" : ""}`}
-                      placeholder="กรอก 13 ตัว"
+                      placeholder="เช่น TH1234567890"
                       value={trackingNumber}
                       maxLength={13}
                       onChange={(event) => {
@@ -327,15 +333,21 @@ function OrderDetailModal({
               <button type="button" className="btn btn-outline-secondary" onClick={handleSaveAddress} disabled={isLocked}>
                 บันทึกที่อยู่จัดส่ง
               </button>
-              <button
-                type="button"
-                className="btn btn-success"
-                onClick={handleComplete}
-                disabled={isLocked || !order.trackingNumber}
-                title={!order.trackingNumber ? "ต้องบันทึกเลขพัสดุก่อนถึงจะปิดออเดอร์ได้" : undefined}
-              >
-                ✅ จัดส่งสำเร็จ (Complete)
-              </button>
+              {order.status === "Completed" ? (
+                <button type="button" className="btn btn-outline-warning" onClick={handleRevert}>
+                  ↩️ ย้อนกลับเป็น In Transit
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleComplete}
+                  disabled={isLocked || !order.trackingNumber}
+                  title={!order.trackingNumber ? "ต้องบันทึกเลขพัสดุก่อนถึงจะปิดออเดอร์ได้" : undefined}
+                >
+                  ✅ จัดส่งสำเร็จ (Complete)
+                </button>
+              )}
               {savedMessage && <span className="text-success small">{savedMessage}</span>}
             </div>
           )}
