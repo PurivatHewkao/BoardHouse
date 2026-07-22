@@ -38,7 +38,7 @@ export function sortOrdersByNewest(orders) {
   return [...orders].sort((a, b) => getOrderTime(b) - getOrderTime(a));
 }
 
-export function createOrder({ user, cartItems, paymentMethod = "Cash on Delivery", shippingAddress }) {
+export function createOrder({ user, cartItems, paymentMethod = "Credit Card", shippingAddress }) {
   const orderItems = cartItems.map((item) => ({
     productId: item.productId,
     name: item.product.name,
@@ -77,16 +77,19 @@ function toneForStatus(status) {
 }
 
 export function updateOrderStatus(orderId, status) {
-  const nextOrders = getOrders().map((order) =>
-    order.id === orderId
-      ? {
-          ...order,
-          status,
-          tone: toneForStatus(status),
-          statusUpdatedAt: Date.now(),
-        }
-      : order
-  );
+  const nextOrders = getOrders().map((order) => {
+    if (order.id !== orderId) return order;
+    // ออเดอร์ที่ยกเลิกแล้ว (Cancelled) ห้ามเปลี่ยนสถานะอีก แต่ Completed แอดมินย้อนกลับเป็น In Transit ได้ (เผื่อกดปิดออเดอร์พลาด)
+    if (order.status === "Cancelled") {
+      return order;
+    }
+    return {
+      ...order,
+      status,
+      tone: toneForStatus(status),
+      statusUpdatedAt: Date.now(),
+    };
+  });
   saveOrders(nextOrders);
   return nextOrders;
 }
@@ -111,7 +114,15 @@ export function cancelOrder(orderId, reason, admin) {
 
 // ให้แอดมินแก้ไขรหัสพัสดุ/ผู้ให้บริการขนส่ง และเติมข้อมูลที่อยู่จัดส่งให้ครบ
 export function updateOrderDetails(orderId, updates) {
-  const nextOrders = getOrders().map((order) => (order.id === orderId ? { ...order, ...updates } : order));
+  const nextOrders = getOrders().map((order) => {
+    if (order.id !== orderId) return order;
+    // ออเดอร์ที่ปิดแล้ว (Completed/Cancelled) ห้ามแก้ไขข้อมูลขนส่ง/สถานะอีก
+    // กันเคสที่ทำให้สถานะเด้งกลับไปเป็น "In Transit" หลังจากปิดออเดอร์เป็น Completed แล้ว
+    if (order.status === "Completed" || order.status === "Cancelled") {
+      return order;
+    }
+    return { ...order, ...updates };
+  });
   saveOrders(nextOrders);
   return nextOrders;
 }

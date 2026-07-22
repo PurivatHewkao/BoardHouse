@@ -313,10 +313,6 @@ function CheckoutRoute({ items, subtotal, currentUser, placeOrder, setPage, save
                       confirmed as paid.
                     </p>
                   )}
-
-                  {paymentMethod === "Cash on Delivery" && (
-                    <p className="mb-0 text-muted">Pay in cash when your order arrives at your door.</p>
-                  )}
                 </div>
               </div>
             </div>

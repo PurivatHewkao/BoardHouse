@@ -22,7 +22,7 @@ export const categories = [
   "Cooperative"
 ];
 
-export const paymentMethods = ["Credit Card", "Bank Transfer", "Cash on Delivery"];
+export const paymentMethods = ["Credit Card", "Bank Transfer"];
 
 export const orderStatuses = ["Paid", "Preparing Shipment", "In Transit", "Completed", "Cancelled"];
 
