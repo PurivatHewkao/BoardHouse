@@ -534,7 +534,7 @@ flowchart TB
         Customer["Customer"]
         Admin["Admin"]
         SuperAdmin["Super Admin"]
-        Browser["Web Browser<br/>Desktop / Mobile"]
+        Browser["Web Browser<br/>Desktop"]
     end
 
     subgraph Presentation["Presentation Layer"]
@@ -546,7 +546,7 @@ flowchart TB
         Auth["Authentication Module<br/>Register / Login / Role Validation"]
         Product["Product Module<br/>Browse / Search / Product CRUD"]
         Cart["Cart Module<br/>Add / Update / Remove Items"]
-        Order["Order Module<br/>Checkout / History / Cancel Order"]
+        Order["Order Module<br/>Checkout / History "]
         UserManagement["User Management Module<br/>Profile / Customer / Admin"]
         Dashboard["Dashboard Module<br/>Orders / Sales / Stock"]
     end
