@@ -580,8 +580,8 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                 <form id="product-editor" onSubmit={handleSaveProduct} className="admin-product-editor">
                   <div className="admin-editor-header">
                     <div>
-                      <span className="admin-editor-step">ข้อมูลสินค้า</span>
-                      <h2>{editingId ? `แก้ไขสินค้า #${editingId}` : "เพิ่มบอร์ดเกมใหม่"}</h2>
+                      <span className="admin-editor-step">Product Info</span>
+                      <h2>{editingId ? `Edit Product #${editingId}` : "Add New Product"}</h2>
                     </div>
                     {editingId && <span className="admin-editing-badge">กำลังแก้ไข</span>}
                   </div>
@@ -671,7 +671,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                   <div className="admin-product-list-header">
                     <div>
                       <span className="admin-section-kicker">Inventory</span>
-                      <h2>รายการสินค้า</h2>
+                      <h2>Product List</h2>
                       <p>แสดง {filteredProducts.length} จาก {products.length} รายการ</p>
                     </div>
                     <div className="admin-product-filters">
@@ -947,7 +947,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
 
                 <div className="card border-0 shadow-sm mb-4">
                   <div className="card-body p-3">
-                    <h2 className="h6 mb-1">เพิ่ม Admin ใหม่</h2>
+                    <h2 className="h6 mb-1">Add New Admin</h2>
                     <p className="text-muted small mb-3">
                       สร้างบัญชีแอดมินขึ้นมาใหม่โดยตรง (แยกจากบัญชีลูกค้า) เพื่อไม่ให้ข้อมูลการซื้อของปนกัน
                     </p>
@@ -1041,7 +1041,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                   <div className="col-lg-6">
                     <div className="card border-0 shadow-sm h-100">
                       <div className="card-body p-4">
-                        <h2 className="h6 mb-3">ข้อมูลส่วนตัว</h2>
+                        <h2 className="h6 mb-3">Personal Info</h2>
                         <form className="vstack gap-3" onSubmit={handleSaveMyProfile}>
                           <div>
                             <label className="form-label fw-semibold">ชื่อ-นามสกุล</label>
@@ -1067,7 +1067,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
                   <div className="col-lg-6">
                     <div className="card border-0 shadow-sm h-100">
                       <div className="card-body p-4">
-                        <h2 className="h6 mb-3">เปลี่ยนรหัสผ่าน</h2>
+                        <h2 className="h6 mb-3">Change Password</h2>
                         <form className="vstack gap-3" onSubmit={handleChangeMyPassword}>
                           <div>
                             <label className="form-label fw-semibold">รหัสผ่านปัจจุบัน</label>
@@ -1118,7 +1118,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow">
               <div className="modal-header">
-                <h5 className="modal-title">แก้ไขข้อมูล Admin</h5>
+                <h5 className="modal-title">Edit Admin</h5>
                 <button type="button" className="btn-close" onClick={() => setEditingAdmin(null)}></button>
               </div>
               <form onSubmit={handleSaveEditAdmin}>
