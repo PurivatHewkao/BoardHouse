@@ -89,6 +89,13 @@ function App() {
     .filter((item) => item.product);
 
   function addToCart(productId) {
+    // ต้องเข้าสู่ระบบก่อนถึงจะเพิ่มของลงตะกร้าได้ — กันไม่ให้ guest ใส่ของลงตะกร้าที่เปิดดู/สั่งซื้อไม่ได้
+    if (!currentUser) {
+      alert("กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า");
+      setPage("Login");
+      return;
+    }
+
     const product = products.find((item) => item.id === productId);
     const cartItem = cart.find((item) => item.productId === productId);
 
