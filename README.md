@@ -528,70 +528,7 @@ sequenceDiagram
 
 ### System Architecture
 
-```mermaid
-flowchart TB
-    subgraph Client["Client Layer"]
-        Customer["Customer"]
-        Admin["Admin"]
-        SuperAdmin["Super Admin"]
-        Browser["Web Browser<br/>Desktop"]
-    end
 
-    subgraph Presentation["Presentation Layer"]
-        Hosting["Vercel Hosting"]
-        Frontend["React Frontend<br/>Tailwind CSS + Bootstrap"]
-    end
-
-    subgraph Application["Application and Business Logic Layer"]
-        Auth["Authentication Module<br/>Register / Login / Role Validation"]
-        Product["Product Module<br/>Browse / Search / Product CRUD"]
-        Cart["Cart Module<br/>Add / Update / Remove Items"]
-        Order["Order Module<br/>Checkout / History "]
-        UserManagement["User Management Module<br/>Profile / Customer / Admin"]
-        Dashboard["Dashboard Module<br/>Orders / Sales / Stock"]
-    end
-
-    subgraph Service["Data Access Layer"]
-        AuthService["Auth Service"]
-        ProductService["Product Service"]
-        CartService["Cart Service"]
-        OrderService["Order Service"]
-        UserService["User Service"]
-    end
-
-    subgraph Data["Data Layer"]
-        LocalStorage[("Browser localStorage<br/>Users / Products / Cart / Orders")]
-    end
-
-    Customer --> Browser
-    Admin --> Browser
-    SuperAdmin --> Browser
-
-    Browser --> Hosting
-    Hosting --> Frontend
-
-    Frontend --> Auth
-    Frontend --> Product
-    Frontend --> Cart
-    Frontend --> Order
-    Frontend --> UserManagement
-    Frontend --> Dashboard
-
-    Auth --> AuthService
-    Product --> ProductService
-    Cart --> CartService
-    Order --> OrderService
-    UserManagement --> UserService
-    Dashboard --> ProductService
-    Dashboard --> OrderService
-    Dashboard --> UserService
-
-    AuthService --> LocalStorage
-    ProductService --> LocalStorage
-    CartService --> LocalStorage
-    OrderService --> LocalStorage
-    UserService --> LocalStorage
-```
 ```mermaid
 flowchart TB
   subgraph CL["Client Layer"]
