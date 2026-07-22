@@ -729,23 +729,12 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 
 ## Testing Approach
 
-### Function Testing
-
-https://quilled-edge-054.notion.site/3a3dadaf37a28079ac5df91952911184?v=a57dadaf37a2832fac5f88ef334e57c4&source=copy_link </br>
-| ลำดับ | ชื่อ-นามสกุล | กลุ่ม | รหัสนักศึกษา | ลิ้งค์ |
-| ----- | ----------------------- | ----- | ------------ | ----- |
-| 1 | Overall Team's FT | | | [FT Result](https://app.notion.com/p/3a1dadaf37a28027bfbdcb58b847b5cf?v=514dadaf37a2823b85b188e55ac23683&source=copy_link) |
-| 2 | ภูริวัชร์ จินดาพงษ์ศิริ | T003 | 67182803 | [FT Purivat](https://app.notion.com/p/3a2dadaf37a2809aa6e6e43f927bc880?v=ea3dadaf37a283cd90cc085a4300fed9) |
-| 3 | ภานุกร แสงมณี | T001 | 67161002 | [FT Phanukon](https://quilled-edge-054.notion.site/3a2dadaf37a280c89ae1d139a73fbdcd?v=62cdadaf37a282c694e00899daed109e&source=copy_link) |
-| 4 | บุรพร วันทอง | T001 | 67167437 | [FT Buraphorn](https://quilled-edge-054.notion.site/3a2dadaf37a28042aaa6cf6913afc0f8?v=a02dadaf37a2833381f888987d344a59&source=copy_link) |
-| 5 | กนก รัตนเรืองรักษ์ | T001 | 67188118 | [FT Kanok](https://app.notion.com/p/3a2dadaf37a28028afacf3820d12d683?v=512dadaf37a282ac9c2e08952eb11778&source=copy_link) |
-
 ### User Acceptance
 
 https://quilled-edge-054.notion.site/3a1dadaf37a28069a987e5e7becfb3ff?v=3a1dadaf37a2807aadf7000c32cf3915 </br>
 | ลำดับ | ชื่อ-นามสกุล | กลุ่ม | รหัสนักศึกษา | ลิ้งค์ |
 | ----- | ----------------------- | ----- | ------------ | ----- |
-| 1 | Overall Team's UAT | | | [UAT Result](https://app.notion.com/p/3a1dadaf37a28027bfbdcb58b847b5cf?v=514dadaf37a2823b85b188e55ac23683&source=copy_link) |
+| 1 | Overall Team's UAT | | | [UAT Result](https://quilled-edge-054.notion.site/UAT-22-7-Result-3a5dadaf37a2801bb069f593f2df67b4?source=copy_link) |
 | 2 | ภูริวัชร์ จินดาพงษ์ศิริ | T003 | 67182803 | [UAT Purivat](https://quilled-edge-054.notion.site/3a4dadaf37a2802bb3e0c3810c1c711e?v=95ddadaf37a28333bc130837ce8717d5&source=copy_link) |
 | 3 | ภานุกร แสงมณี | T001 | 67161002 | [UAT Phanukon](https://app.notion.com/p/3a1dadaf37a2803d9eeff2f8da04a69a?v=e83dadaf37a2830a95ab0806a4ed061a&source=copy_link) |
 | 4 | บุรพร วันทอง | T001 | 67167437 | [UAT Buraphorn](https://app.notion.com/p/3a1dadaf37a280b79c33ec14abbc10b5?v=e32dadaf37a282baae72881bfe56a2fb&source=copy_link) |
