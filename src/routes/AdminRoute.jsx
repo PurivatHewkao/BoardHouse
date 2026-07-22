@@ -1108,6 +1108,7 @@ function AdminRoute({ currentUser, setCurrentUser }) {
           onSaveAddress={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
           onSaveTracking={(updates) => handleOrderDetailsSave(selectedOrder.id, updates)}
           onComplete={() => handleOrderStatusChange(selectedOrder.id, "Completed")}
+          onRevertToInTransit={() => handleOrderStatusChange(selectedOrder.id, "In Transit")}
         />
       )}
 
