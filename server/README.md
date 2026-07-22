@@ -28,7 +28,7 @@ VITE_API_URL=http://localhost:3000
 ถ้าต้องให้เครื่องอื่นใน Wi-Fi เดียวกันเรียก server ได้:
 
 ```powershell
-npm run server:lan
+npm start
 ```
 
 จากนั้นเปลี่ยน `.env.local` ในเครื่อง frontend เป็น IP เครื่อง server เช่น:

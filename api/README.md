@@ -67,7 +67,7 @@ VITE_API_URL=http://localhost:3000
 โปรเจกต์นี้มี Express server local ให้แล้วใน `server/index.js` ถ้าจะใช้ให้รัน:
 
 ```powershell
-npm run server
+npm start
 npm run dev
 ```
 
