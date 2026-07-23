@@ -1,5 +1,6 @@
 const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || "local";
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const CONFIGURED_API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const API_BASE_URL = resolveApiBaseUrl();
 const apiCache = new Map();
 
 export const dataSourceSyncedEvent = "boardhouse:data-source-synced";
@@ -10,6 +11,18 @@ export function getDataSourceInfo() {
     apiBaseUrl: API_BASE_URL,
     usesApi: DATA_SOURCE === "api" && Boolean(API_BASE_URL),
   };
+}
+
+function resolveApiBaseUrl() {
+  if (CONFIGURED_API_BASE_URL && CONFIGURED_API_BASE_URL !== "auto") {
+    return CONFIGURED_API_BASE_URL;
+  }
+
+  if (DATA_SOURCE !== "api" || typeof window === "undefined") {
+    return "";
+  }
+
+  return `${window.location.protocol}//${window.location.hostname}:3000`;
 }
 
 function canUseLocalStorage() {
