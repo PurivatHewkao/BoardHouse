@@ -535,7 +535,7 @@ flowchart TB
     CUS["Customer"]
     ADM["Admin"]
     SA["Super Admin"]
-    BR["Web Browser<br/>Desktop / Mobile"]
+    BR["Web Browser<br/>Desktop"]
     CUS --> BR
     ADM --> BR
     SA --> BR
@@ -552,7 +552,7 @@ flowchart TB
     PRODUCT["Product Module<br/>Browse / Search / Filter / Product Detail"]
     CART["Cart Module<br/>Add / Update / Remove Item"]
     ORDER["Order Module<br/>Checkout / Order History / Status"]
-    DASH["Dashboard Module<br/>Orders / Sales / Stock"]
+    DASH["Dashboard Module<br/>Orders / Sales / Stock /User"]
     USERMGMT["User Management Module<br/>Profile / Customer / Admin"]
   end
 
