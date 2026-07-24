@@ -2,6 +2,7 @@ const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || "local";
 const CONFIGURED_API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 const API_BASE_URL = resolveApiBaseUrl();
 const apiCache = new Map();
+const sessionOnlyKeys = new Set(["boardhouse-current-user"]);
 
 export const dataSourceSyncedEvent = "boardhouse:data-source-synced";
 
@@ -27,6 +28,22 @@ function resolveApiBaseUrl() {
 
 function canUseLocalStorage() {
   return typeof localStorage !== "undefined";
+}
+
+function canUseSessionStorage() {
+  return typeof sessionStorage !== "undefined";
+}
+
+function isSessionOnlyKey(key) {
+  return sessionOnlyKeys.has(key);
+}
+
+function removeLegacyLocalValue(key) {
+  try {
+    removeLocalValue(key);
+  } catch {
+    // Ignore stale localStorage cleanup failures.
+  }
 }
 
 function readLocalValue(key, fallback) {
@@ -56,6 +73,35 @@ function removeLocalValue(key) {
 
 function hasLocalValue(key) {
   return canUseLocalStorage() && localStorage.getItem(key) !== null;
+}
+
+function readSessionValue(key, fallback) {
+  if (!canUseSessionStorage()) {
+    return fallback;
+  }
+
+  const savedValue = sessionStorage.getItem(key);
+  return savedValue ? JSON.parse(savedValue) : fallback;
+}
+
+function writeSessionValue(key, value) {
+  if (!canUseSessionStorage()) {
+    return;
+  }
+
+  sessionStorage.setItem(key, JSON.stringify(value));
+}
+
+function removeSessionValue(key) {
+  if (!canUseSessionStorage()) {
+    return;
+  }
+
+  sessionStorage.removeItem(key);
+}
+
+function hasSessionValue(key) {
+  return canUseSessionStorage() && sessionStorage.getItem(key) !== null;
 }
 
 function apiUrl(key) {
@@ -95,6 +141,17 @@ function syncRemoveFromApi(key) {
 }
 
 export function readData(key, fallback) {
+  if (isSessionOnlyKey(key)) {
+    removeLegacyLocalValue(key);
+
+    try {
+      return readSessionValue(key, fallback);
+    } catch {
+      removeSessionValue(key);
+      return fallback;
+    }
+  }
+
   if (shouldSyncApi()) {
     return apiCache.has(key) ? apiCache.get(key) : fallback;
   }
@@ -108,6 +165,18 @@ export function readData(key, fallback) {
 }
 
 export function writeData(key, value) {
+  if (isSessionOnlyKey(key)) {
+    removeLegacyLocalValue(key);
+
+    try {
+      writeSessionValue(key, value);
+    } catch {
+      // Keep the mock app usable even if browser session storage is blocked.
+    }
+
+    return;
+  }
+
   if (shouldSyncApi()) {
     apiCache.set(key, value);
     syncWriteToApi(key, value);
@@ -123,6 +192,18 @@ export function writeData(key, value) {
 }
 
 export function removeData(key) {
+  if (isSessionOnlyKey(key)) {
+    removeLegacyLocalValue(key);
+
+    try {
+      removeSessionValue(key);
+    } catch {
+      // Keep the mock app usable even if browser session storage is blocked.
+    }
+
+    return;
+  }
+
   if (shouldSyncApi()) {
     apiCache.delete(key);
     syncRemoveFromApi(key);
@@ -138,6 +219,14 @@ export function removeData(key) {
 }
 
 export function hasData(key) {
+  if (isSessionOnlyKey(key)) {
+    try {
+      return hasSessionValue(key);
+    } catch {
+      return false;
+    }
+  }
+
   if (shouldSyncApi()) {
     return apiCache.has(key);
   }
@@ -169,6 +258,10 @@ export async function syncDataFromApi(keys) {
   const storage = payload?.storage || {};
 
   keys.forEach((key) => {
+    if (isSessionOnlyKey(key)) {
+      return;
+    }
+
     if (Object.prototype.hasOwnProperty.call(storage, key)) {
       const currentJson = JSON.stringify(apiCache.get(key));
       const nextJson = JSON.stringify(storage[key]);
@@ -203,6 +296,10 @@ export async function resetApiData() {
 
   apiCache.clear();
   Object.entries(storage).forEach(([key, value]) => {
+    if (isSessionOnlyKey(key)) {
+      return;
+    }
+
     apiCache.set(key, value);
   });
 

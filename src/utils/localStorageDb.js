@@ -61,6 +61,7 @@ export async function resetStorage() {
       const reset = await resetApiData();
 
       if (reset) {
+        clearData([storageKeys.currentUser]);
         return;
       }
     }
