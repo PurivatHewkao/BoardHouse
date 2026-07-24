@@ -6,7 +6,6 @@
 
 <p align="center"> เว็บไซต์ eCommerce สำหรับร้านจำหน่ายบอร์ดเกมบนเว็บไซต์ ผู้ใช้สามารถเลือกดูสินค้า</p>
 
-<p align="center"> https://house-board-swart.vercel.app/ </p>
 
 รายชิ่อสมาชิกกลุ่ม
 
@@ -278,7 +277,6 @@ flowchart LR
 
         History([View Order History])
         Track([Track Order Status])
-        Cancel([Cancel Order])
 
         AdminLogin([login])
         Dashboard([Dashboard])
@@ -293,7 +291,6 @@ flowchart LR
     Customer ---Search
     Customer --- Detail
     Customer --- Addon
-    Customer --- Cancel
 
     LoginCustomer --> Ordering
     LoginCustomer --> History
@@ -305,7 +302,6 @@ flowchart LR
     Payment -.->|«include»| ProcessPayment
 
     History -.->|«include»| Track
-    Cancel -.->|«extend»| History
 
     AdminLogin --- Admin
     Dashboard --- AdminLogin
@@ -346,13 +342,13 @@ classDiagram
         - int cartId
         + addItem() void
         + removeItem() void
-        + calculateTotal() float
+        + calculateTotal() number
         + checkout() Order
     }
 
     class CartProduct {
         - int quantity
-        - float price
+        - number price
         + allTotal() int
         + viewItem() list
     }
@@ -360,27 +356,25 @@ classDiagram
     class Product {
         - int productId
         - string nameProduct
-        - float price
+        - number price
         - string description
         - string category
-        + addproduct() void
-        + updateproduct() void
-
     }
 
     class Order {
         - int orderId
         - datetime orderDate
         - string status
-        - float totalAmount
+        - number totalAmount
         + createOrder() bool
         + checkStatus() string
         + confirm() void
+        + addLocation() bool
     }
 
     class Payment {
         - int paymentId
-        - float numAmount
+        - number numAmount
         - datetime payDate
         - string paymentStatus
         + processPay() bool
@@ -390,8 +384,8 @@ classDiagram
         - int orderDetailId
         - string nameProduct
         - int quantity
-        - float unitPrice
-        + calculateSubtotal() float
+        - number unitPrice
+        + calculateSubtotal() number
     }
 
     class Admin {
@@ -402,7 +396,15 @@ classDiagram
         + logout() void
         + viewAddress() list
         + manageProducts() void
-        + manageOrders() void
+        + manageOrderStatus() void
+    }
+
+    class SuperAdmin {
+        - int superAdminId
+        - string superAdminName
+        - string password
+        + inviteAdmin() bool
+        + removeAdmin() bool
     }
 
     class Stock {
@@ -428,6 +430,8 @@ classDiagram
     Customer "*" <-- "*" Admin : ตรวจสอบ
     Order "*" <-- "1" Admin : จัดการคำสั่งซื้อ
     Product "*" <-- "1" Admin : จัดการสินค้า
+    SuperAdmin --|> Admin : สืบทอด
+    SuperAdmin "1" --> "*" Admin : จัดการ
 ```
 
 ### Sequence Diagram
@@ -522,6 +526,27 @@ sequenceDiagram
     Order-->>Admin: บันทึกการเปลี่ยนแปลงสำเร็จ
 ```
 
+#### Super Admin Management Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor SuperAdmin as Super Admin
+    participant System
+    participant Admin
+
+    SuperAdmin->>SuperAdmin: ล็อคอิน
+    SuperAdmin->>System: เชิญแอดมิน
+    System->>Admin: สร้างแอดมิน
+    Admin-->>System: สร้างสำเร็จ
+    System-->>SuperAdmin: เพิ่มสำเร็จ
+
+    SuperAdmin->>System: ลบแอดมิน
+    System->>Admin: ลบแอดมิน
+    Admin-->>System: ลบสำเร็จ
+    System-->>SuperAdmin: ลบสำเร็จ
+```
+
 ---
 
 ## Development
@@ -531,7 +556,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-  subgraph CL["Client Layer"]
+  subgraph CL["Client Layer "]
     CUS["Customer"]
     ADM["Admin"]
     SA["Super Admin"]
@@ -631,6 +656,15 @@ Local Storage ใช้สำหรับจัดเก็บข้อมูล
 | JavaScript   | ใช้สำหรับเขียน Logic การทำงานของระบบ เช่น การจัดการสินค้า ตะกร้าสินค้า การเข้าสู่ระบบ และการจัดการคำสั่งซื้อ                                                            |
 | Tailwind CSS | ใช้สำหรับออกแบบ Layout, Spacing, Color, Responsive Design และปรับแต่ง UI ให้เหมาะกับธีมของเว็บไซต์                                                                      |
 | Bootstrap    | ใช้สำหรับ Component สำเร็จรูปบางส่วน เช่น Button, Form, Table, Navbar และ Modal เพื่อช่วยให้พัฒนา UI ได้รวดเร็วขึ้น                                                     |
+
+### Backend
+
+| Technology | Description                                                                                                    |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| Node.js    | ใช้สำหรับรัน Backend Server และจัดการคำขอจาก Frontend ผ่าน JavaScript ฝั่ง Server                            |
+| Express.js | ใช้สำหรับสร้าง REST API เช่น `/api/storage`, `/api/storage/:key` และ `/api/storage/reset`                    |
+| CORS       | ให้ Frontend เรียกใช้งาน API จาก Backend ได้อย่างถูกต้อง                                      |
+| JSON File  | สำหรับจัดเก็บข้อมูลสินค้า ผู้ใช้ ตะกร้า และคำสั่งซื้อ |
 
 ### Data Storage
 
@@ -770,11 +804,6 @@ https://quilled-edge-054.notion.site/3a1dadaf37a28069a987e5e7becfb3ff?v=3a1dadaf
 
 ![](docs/images/deploy-vercel-2.png)
 
----
-
-## Maintenance
-
-ถ้าเว็บมีปัญหาจะทำยังไง แก้ไขได้ในเวลาเท่าไหร่
 
 ---
 
